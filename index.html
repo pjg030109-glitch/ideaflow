@@ -82,6 +82,13 @@
   </header>
 
   <section>
+    <div class="idea-box">
+  <h2>💡 Salve sua ideia</h2>
+  <textarea id="ideaInput" placeholder="Digite sua ideia criativa aqui..."></textarea>
+  <button onclick="saveIdea()">Salvar ideia</button>
+  <ul id="ideaList"></ul>
+</div>
+
     <div class="cards">
       <div class="card">
         <h3>⚡ Rápido</h3>
@@ -106,5 +113,33 @@
     © 2026 · Criado por você · GitHub Pages
   </footer>
 
+<script>
+  const ideaInput = document.getElementById("ideaInput");
+  const ideaList = document.getElementById("ideaList");
+
+  function loadIdeas() {
+    const ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+    ideaList.innerHTML = "";
+    ideas.forEach(idea => {
+      const li = document.createElement("li");
+      li.textContent = idea;
+      ideaList.appendChild(li);
+    });
+  }
+
+  function saveIdea() {
+    const text = ideaInput.value.trim();
+    if (!text) return;
+
+    const ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+    ideas.push(text);
+    localStorage.setItem("ideas", JSON.stringify(ideas));
+
+    ideaInput.value = "";
+    loadIdeas();
+  }
+
+  loadIdeas();
+</script>
 </body>
 </html>
