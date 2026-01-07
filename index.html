@@ -114,15 +114,32 @@
   </footer>
 
 <script>
-  const ideaInput = document.getElementById("ideaInput");
+ const ideaInput = document.getElementById("ideaInput");
   const ideaList = document.getElementById("ideaList");
 
+  function getIdeas() {
+    return JSON.parse(localStorage.getItem("ideas")) || [];
+  }
+
+  function saveIdeas(ideas) {
+    localStorage.setItem("ideas", JSON.stringify(ideas));
+  }
+
+  function formatDate() {
+    const now = new Date();
+    return now.toLocaleDateString("pt-BR") + " " + now.toLocaleTimeString("pt-BR");
+  }
+
   function loadIdeas() {
-    const ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+    const ideas = getIdeas();
     ideaList.innerHTML = "";
+
     ideas.forEach(idea => {
       const li = document.createElement("li");
-      li.textContent = idea;
+      li.innerHTML = `
+        <strong>${idea.text}</strong><br>
+        <small>${idea.date}</small>
+      `;
       ideaList.appendChild(li);
     });
   }
@@ -131,10 +148,15 @@
     const text = ideaInput.value.trim();
     if (!text) return;
 
-    const ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-    ideas.push(text);
-    localStorage.setItem("ideas", JSON.stringify(ideas));
+    const ideas = getIdeas();
 
+    ideas.push({
+      id: Date.now(),
+      text: text,
+      date: formatDate()
+    });
+
+    saveIdeas(ideas);
     ideaInput.value = "";
     loadIdeas();
   }
