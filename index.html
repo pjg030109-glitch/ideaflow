@@ -144,7 +144,7 @@
 
   <script>
     let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-
+let searchTerm = "";
     function saveIdeas() {
       localStorage.setItem("ideas", JSON.stringify(ideas));
     }
@@ -186,7 +186,11 @@
       const list = document.getElementById("ideasList");
       list.innerHTML = "";
 
-      ideas.forEach(idea => {
+     const filteredIdeas = ideas.filter(idea =>
+  idea.content.toLowerCase().includes(searchTerm)
+);
+
+filteredIdeas.forEach(idea => {
         const li = document.createElement("li");
 
         li.innerHTML = `
@@ -202,6 +206,10 @@
     }
 
     renderIdeas();
+ document.getElementById("searchInput").addEventListener("input", (e) => {
+  searchTerm = e.target.value.toLowerCase();
+  renderIdeas();
+});
   </script>
 
 </body>
