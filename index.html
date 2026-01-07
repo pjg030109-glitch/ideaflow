@@ -2,28 +2,24 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>IdeaFlow</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
       margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(120deg, #020617, #0f172a);
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0b0f1a;
       color: #e5e7eb;
     }
 
     header {
       text-align: center;
-      padding: 100px 20px;
+      padding: 80px 20px;
     }
 
     header h1 {
-      font-size: 3.5rem;
+      font-size: 3rem;
       background: linear-gradient(90deg, #38bdf8, #818cf8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -32,265 +28,168 @@
     header p {
       color: #94a3b8;
       font-size: 1.2rem;
-      margin-top: 20px;
+      margin-top: 16px;
     }
 
-    section {
-      max-width: 1100px;
+    .container {
+      max-width: 700px;
       margin: auto;
-      padding: 60px 20px;
+      padding: 20px;
     }
 
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 24px;
-    }
-
-    .card {
+    .idea-box {
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 16px;
       padding: 24px;
-      transition: .3s;
+      margin-bottom: 40px;
     }
 
-    .card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 20px 40px rgba(56,189,248,.15);
+    textarea {
+      width: 100%;
+      height: 90px;
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      color: #e5e7eb;
+      padding: 12px;
+      font-size: 1rem;
+      resize: none;
     }
 
-    .card h3 {
-      color: #38bdf8;
+    button {
+      margin-top: 12px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      color: #020617;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 20px;
+    }
+
+    li {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 14px;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    li span {
+      flex: 1;
+    }
+
+    .actions button {
+      background: none;
+      border: 1px solid #334155;
+      color: #e5e7eb;
+      padding: 6px 10px;
+      border-radius: 8px;
     }
 
     footer {
       text-align: center;
       padding: 40px;
-      color: #94a3b8;
-      font-size: .85rem;
+      color: #64748b;
+      font-size: 0.9rem;
     }
-/* ===== IdeaFlow UI Upgrade ===== */
-
-.idea-box {
-  margin-top: 80px;
-  background: linear-gradient(180deg, #020617, #020617cc);
-  border: 1px solid #1e293b;
-  border-radius: 20px;
-  padding: 32px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.3);
-}
-
-.idea-box h2 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-}
-
-.idea-box textarea {
-  width: 100%;
-  min-height: 120px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 16px;
-  color: #e5e7eb;
-  font-size: 1rem;
-  transition: border .2s, box-shadow .2s;
-}
-
-.idea-box textarea:focus {
-  outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56,189,248,.2);
-}
-
-.idea-box button {
-  margin-top: 16px;
-  background: linear-gradient(90deg, #38bdf8, #818cf8);
-  border: none;
-  color: #020617;
-  font-weight: 700;
-  padding: 12px 28px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform .2s, box-shadow .2s;
-}
-
-.idea-box button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(56,189,248,.4);
-}
-
-#ideaList {
-  margin-top: 32px;
-  display: grid;
-  gap: 16px;
-}
-
-#ideaList li {
-  list-style: none;
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 16px;
-  transition: transform .2s, box-shadow .2s;
-}
-
-#ideaList li:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px rgba(0,0,0,.4);
-}
-
-#ideaList strong {
-  display: block;
-  font-size: 1rem;
-  color: #e5e7eb;
-}
-
-#ideaList small {
-  color: #94a3b8;
-}
-
-#ideaList button {
-  margin-top: 10px;
-  margin-right: 8px;
-  background: #020617;
-  border: 1px solid #1e293b;
-  color: #e5e7eb;
-  padding: 6px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-#ideaList button:hover {
-  background: #1e293b;
-}
   </style>
 </head>
 
 <body>
 
   <header>
-    <h1>🚀 IdeaFlow</h1>
-    <p>Transformando Ideias em experiências</p>
+    <h1>IdeaFlow</h1>
+    <p>Captura ideias criativas do usuário</p>
   </header>
 
-  <section>
+  <div class="container">
     <div class="idea-box">
-  <h2>💡 Salve sua ideia</h2>
-  <textarea id="ideaInput" placeholder="Digite sua ideia criativa aqui..."></textarea>
-  <button onclick="saveIdea()">Salvar ideia</button>
-  <ul id="ideaList"></ul>
-</div>
+      <h2>💡 Salve sua ideia</h2>
+      <textarea id="ideaInput" placeholder="Digite sua ideia aqui..."></textarea>
+      <button type="button" onclick="addIdea()">Salvar ideia</button>
 
-    <div class="cards">
-      <div class="card">
-        <h3>⚡ Rápido</h3>
-        <p>HTML e CSS puro, carregamento instantâneo.</p>
-      </div>
-      <div class="card">
-        <h3>🎨 Design Moderno</h3>
-        <p>Visual clean com gradientes e animações suaves.</p>
-      </div>
-      <div class="card">
-        <h3>📦 Simples</h3>
-        <p>Sem frameworks, fácil de manter e editar.</p>
-      </div>
-      <div class="card">
-        <h3>🌍 Online</h3>
-        <p>Publicado gratuitamente no GitHub Pages.</p>
-      </div>
+      <ul id="ideasList"></ul>
     </div>
-  </section>
+  </div>
 
   <footer>
-    © 2026 · Criado por você · GitHub Pages
+    © 2026 · GPJ · IdeaFlow
   </footer>
 
-<script>
-   const input = document.getElementById("ideaInput");
-  const list = document.getElementById("ideasList");
+  <script>
+    let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
 
-  let ideas = loadIdeas();
-
-  function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
-
-  function loadIdeas() {
-    return JSON.parse(localStorage.getItem("ideas")) || [];
-  }
-
-  function saveIdeas() {
-    localStorage.setItem("ideas", JSON.stringify(ideas));
-  }
-
-  function addIdea() {
-    const text = input.value.trim();
-    if (!text) return;
-
-    ideas.push({
-      id: generateId(),
-      content: text,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    });
-
-    input.value = "";
-    saveIdeas();
-    renderIdeas();
-  }
-
-  function editIdea(id) {
-    const idea = ideas.find(i => i.id === id);
-    if (!idea) return;
-
-    const newText = prompt("Editar ideia:", idea.content);
-    if (!newText) return;
-
-    idea.content = newText;
-    idea.updatedAt = new Date().toISOString();
-
-    saveIdeas();
-    renderIdeas();
-  }
-
-  function deleteIdea(id) {
-    ideas = ideas.filter(i => i.id !== id);
-    saveIdeas();
-    renderIdeas();
-  }
-
-  function renderIdeas() {
-    list.innerHTML = "";
-
-    if (ideas.length === 0) {
-      list.innerHTML = "<li style='opacity:.6'>Nenhuma ideia salva ainda</li>";
-      return;
+    function saveIdeas() {
+      localStorage.setItem("ideas", JSON.stringify(ideas));
     }
 
-    ideas.forEach(idea => {
-      const li = document.createElement("li");
-      li.style.display = "flex";
-      li.style.justifyContent = "space-between";
-      li.style.alignItems = "center";
-      li.style.gap = "12px";
+    function addIdea() {
+      const input = document.getElementById("ideaInput");
+      const text = input.value.trim();
 
-      li.innerHTML = `
-        <span>${idea.content}</span>
-        <div>
-          <button onclick="editIdea('${idea.id}')">✏️</button>
-          <button onclick="deleteIdea('${idea.id}')">🗑️</button>
-        </div>
-      `;
+      if (!text) return;
 
-      list.appendChild(li);
-    });
-  }
+      ideas.push({
+        id: Date.now(),
+        content: text
+      });
 
-  renderIdeas();
+      input.value = "";
+      saveIdeas();
+      renderIdeas();
+    }
 
-</script>
+    function editIdea(id) {
+      const idea = ideas.find(i => i.id === id);
+      const newText = prompt("Editar ideia:", idea.content);
+
+      if (!newText) return;
+
+      idea.content = newText;
+      saveIdeas();
+      renderIdeas();
+    }
+
+    function deleteIdea(id) {
+      ideas = ideas.filter(i => i.id !== id);
+      saveIdeas();
+      renderIdeas();
+    }
+
+    function renderIdeas() {
+      const list = document.getElementById("ideasList");
+      list.innerHTML = "";
+
+      ideas.forEach(idea => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <span>${idea.content}</span>
+          <div class="actions">
+            <button onclick="editIdea(${idea.id})">✏️</button>
+            <button onclick="deleteIdea(${idea.id})">🗑️</button>
+          </div>
+        `;
+
+        list.appendChild(li);
+      });
+    }
+
+    renderIdeas();
+  </script>
+
 </body>
 </html>
+
