@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>IdeaFlow</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
@@ -41,7 +41,8 @@
       margin-bottom: 20px;
     }
 
-    textarea, input {
+    textarea,
+    input {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
@@ -122,18 +123,13 @@
 
   <div class="box">
     <h2>💡 Nova ideia</h2>
-
     <textarea id="ideaInput" placeholder="Digite sua ideia..."></textarea>
-    <input id="tagsInput" placeholder="Tags (ex: app, startup, IA)">
-    <button onclick="addIdea()">Salvar ideia</button>
+    <input id="tagsInput" placeholder="Tags (ex: app, startup, IA)" />
+    <button id="saveBtn">Salvar ideia</button>
   </div>
 
   <div class="box">
-    <input
-      id="searchInput"
-      placeholder="Buscar por texto ou tag..."
-      oninput="renderIdeas()"
-    >
+    <input id="searchInput" placeholder="Buscar por texto ou tag..." />
   </div>
 
   <ul id="ideasList"></ul>
@@ -145,9 +141,12 @@
 </footer>
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
   const ideaInput = document.getElementById("ideaInput");
   const tagsInput = document.getElementById("tagsInput");
   const searchInput = document.getElementById("searchInput");
+  const saveBtn = document.getElementById("saveBtn");
   const ideasList = document.getElementById("ideasList");
 
   let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
@@ -156,7 +155,42 @@
     localStorage.setItem("ideas", JSON.stringify(ideas));
   }
 
-  function addIdea() {
+  function renderIdeas() {
+    const search = searchInput.value.toLowerCase();
+    ideasList.innerHTML = "";
+
+    ideas
+      .filter(idea =>
+        idea.text.toLowerCase().includes(search) ||
+        idea.tags.some(tag => tag.includes(search))
+      )
+      .forEach(idea => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+          <div class="idea">
+            <p>${idea.text}</p>
+
+            <div class="tags">
+              ${idea.tags.map(tag =>
+                `<span class="tag">#${tag}</span>`
+              ).join("")}
+            </div>
+
+            <small>${idea.createdAt}</small>
+
+            <div class="actions">
+              <button data-edit="${idea.id}">✏️</button>
+              <button data-delete="${idea.id}">🗑️</button>
+            </div>
+          </div>
+        `;
+
+        ideasList.appendChild(li);
+      });
+  }
+
+  saveBtn.addEventListener("click", () => {
     const text = ideaInput.value.trim();
     const tags = tagsInput.value
       .split(",")
@@ -179,65 +213,33 @@
     ideaInput.value = "";
     tagsInput.value = "";
     renderIdeas();
-  }
+  });
 
-  function deleteIdea(id) {
-    ideas = ideas.filter(i => i.id !== id);
-    saveIdeas();
-    renderIdeas();
-  }
+  searchInput.addEventListener("input", renderIdeas);
 
-  function editIdea(id) {
-    const idea = ideas.find(i => i.id === id);
-    const newText = prompt("Editar ideia:", idea.text);
-    if (!newText) return;
+  ideasList.addEventListener("click", (e) => {
+    const editId = e.target.dataset.edit;
+    const deleteId = e.target.dataset.delete;
 
-    idea.text = newText;
-    saveIdeas();
-    renderIdeas();
-  }
+    if (editId) {
+      const idea = ideas.find(i => i.id == editId);
+      const newText = prompt("Editar ideia:", idea.text);
+      if (newText) {
+        idea.text = newText;
+        saveIdeas();
+        renderIdeas();
+      }
+    }
 
-  function filterByTag(tag) {
-    searchInput.value = tag;
-    renderIdeas();
-  }
-
-  function renderIdeas() {
-    const search = searchInput.value.toLowerCase();
-    ideasList.innerHTML = "";
-
-    ideas
-      .filter(idea =>
-        idea.text.toLowerCase().includes(search) ||
-        idea.tags.some(tag => tag.includes(search))
-      )
-      .forEach(idea => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-          <div class="idea">
-            <p>${idea.text}</p>
-
-            <div class="tags">
-              ${idea.tags.map(tag =>
-                `<span class="tag" onclick="filterByTag('${tag}')">#${tag}</span>`
-              ).join("")}
-            </div>
-
-            <small>${idea.createdAt}</small>
-
-            <div class="actions">
-              <button onclick="editIdea(${idea.id})">✏️</button>
-              <button onclick="deleteIdea(${idea.id})">🗑️</button>
-            </div>
-          </div>
-        `;
-
-        ideasList.appendChild(li);
-      });
-  }
+    if (deleteId) {
+      ideas = ideas.filter(i => i.id != deleteId);
+      saveIdeas();
+      renderIdeas();
+    }
+  });
 
   renderIdeas();
+});
 </script>
 
 </body>
