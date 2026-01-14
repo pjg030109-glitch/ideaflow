@@ -1,182 +1,295 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>IdeaFlow</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>IdeaFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #020617;
-  color: #e5e7eb;
-}
-header {
-  text-align: center;
-  padding: 30px;
-}
-.container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
-}
-textarea, input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 10px;
-  border: 1px solid #1e293b;
-  background: #020617;
-  color: #e5e7eb;
-}
-button {
-  margin-top: 10px;
-  padding: 12px;
-  width: 100%;
-  border: none;
-  border-radius: 10px;
-  background: #2563eb;
-  color: white;
-  cursor: pointer;
-}
-.idea {
-  background: #0f172a;
-  padding: 15px;
-  border-radius: 12px;
-  margin-top: 12px;
-}
-.tag {
-  display: inline-block;
-  background: #2563eb;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  margin-right: 6px;
-  cursor: pointer;
-}
-.actions {
-  text-align: right;
-  margin-top: 6px;
-}
-.actions button {
-  background: none;
-  border: none;
-  color: #e5e7eb;
-  font-size: 18px;
-  cursor: pointer;
-  margin-left: 6px;
-}
-</style>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.4rem;
+    }
+
+    header p {
+      color: #94a3b8;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .box {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      background: #020617;
+      color: #e5e7eb;
+    }
+
+    button {
+      margin-top: 12px;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .idea-card {
+      background: #0f172a;
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 14px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #2563eb;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-right: 6px;
+    }
+
+    .actions {
+      margin-top: 8px;
+      text-align: right;
+    }
+
+    .actions button {
+      background: none;
+      border: none;
+      color: #e5e7eb;
+      font-size: 1.1rem;
+      cursor: pointer;
+      margin-left: 6px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #64748b;
+      font-size: 0.9rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
 
 <header>
   <h1>IdeaFlow</h1>
-  <p>Salvar, organizar e pesquisar ideias</p>
+  <p>Ideias organizadas por você</p>
 </header>
 
 <div class="container">
-  <textarea id="ideaText" placeholder="Digite sua ideia"></textarea>
-  <input id="ideaTags" placeholder="Tags (ex: app, marketing, IA)">
-  <button id="saveIdea">Salvar ideia</button>
 
-  <input id="search" placeholder="Pesquisar por texto ou tag">
+  <!-- LOGIN -->
+  <div id="loginBox" class="box">
+    <h2>🔐 Login</h2>
+    <input id="loginUser" placeholder="Usuário">
+    <input id="loginPass" type="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+    <button onclick="showRegister()">Criar conta</button>
+  </div>
 
-  <div id="ideas"></div>
+  <!-- CADASTRO -->
+  <div id="registerBox" class="box hidden">
+    <h2>🆕 Cadastro</h2>
+    <input id="regUser" placeholder="Usuário">
+    <input id="regPass" type="password" placeholder="Senha">
+    <button onclick="register()">Cadastrar</button>
+    <button onclick="showLogin()">Voltar</button>
+  </div>
+
+  <!-- APP -->
+  <div id="appBox" class="hidden">
+
+    <div class="box">
+      <button onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <div class="box">
+      <h2>💡 Nova ideia</h2>
+      <textarea id="ideaInput" placeholder="Digite sua ideia..."></textarea>
+      <input id="tagsInput" placeholder="Tags (ex: app, IA, negócio)">
+      <button onclick="addIdea()">Salvar ideia</button>
+    </div>
+
+    <div class="box">
+      <h2>🔎 Pesquisar</h2>
+      <input id="searchInput" placeholder="Pesquisar por texto ou tag" oninput="renderIdeas()">
+    </div>
+
+    <ul id="ideasList"></ul>
+  </div>
+
 </div>
 
+<footer>
+  IdeaFlow © GPJ
+</footer>
+
 <script>
-const ideaText = document.getElementById("ideaText");
-const ideaTags = document.getElementById("ideaTags");
-const search = document.getElementById("search");
-const ideasDiv = document.getElementById("ideas");
-const saveBtn = document.getElementById("saveIdea");
+  let currentUser = localStorage.getItem("currentUser");
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+  let ideas = [];
 
-let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
-
-function saveLocal() {
-  localStorage.setItem("ideas", JSON.stringify(ideas));
-}
-
-saveBtn.onclick = () => {
-  if (!ideaText.value.trim()) {
-    alert("Digite uma ideia");
-    return;
+  function saveUsers() {
+    localStorage.setItem("users", JSON.stringify(users));
   }
 
-  ideas.unshift({
-    id: Date.now(),
-    text: ideaText.value.trim(),
-    tags: ideaTags.value
-      .split(",")
-      .map(t => t.trim())
-      .filter(t => t)
-  });
+  function showRegister() {
+    loginBox.classList.add("hidden");
+    registerBox.classList.remove("hidden");
+  }
 
-  ideaText.value = "";
-  ideaTags.value = "";
-  saveLocal();
-  render();
-};
+  function showLogin() {
+    registerBox.classList.add("hidden");
+    loginBox.classList.remove("hidden");
+  }
 
-search.oninput = render;
+  function register() {
+    const u = regUser.value.trim();
+    const p = regPass.value.trim();
+    if (!u || !p) return alert("Preencha tudo");
+    if (users[u]) return alert("Usuário já existe");
 
-function render() {
-  ideasDiv.innerHTML = "";
-  const q = search.value.toLowerCase();
+    users[u] = { password: p, ideas: [] };
+    saveUsers();
+    alert("Conta criada!");
+    showLogin();
+  }
 
-  ideas
-    .filter(i =>
-      !q ||
-      i.text.toLowerCase().includes(q) ||
-      i.tags.some(t => t.toLowerCase().includes(q))
-    )
-    .forEach(i => {
-      const div = document.createElement("div");
-      div.className = "idea";
+  function login() {
+    const u = loginUser.value.trim();
+    const p = loginPass.value.trim();
+    if (!users[u] || users[u].password !== p) {
+      return alert("Login inválido");
+    }
+    localStorage.setItem("currentUser", u);
+    location.reload();
+  }
 
-      div.innerHTML = `
-        <p>${i.text}</p>
-        <div>
-          ${i.tags.map(t =>
-            `<span class="tag" onclick="searchTag('${t}')">#${t}</span>`
-          ).join("")}
-        </div>
-        <div class="actions">
-          <button onclick="editIdea(${i.id})">✏️</button>
-          <button onclick="deleteIdea(${i.id})">🗑️</button>
-        </div>
-      `;
+  function logout() {
+    localStorage.removeItem("currentUser");
+    location.reload();
+  }
 
-      ideasDiv.appendChild(div);
-    });
-}
+  function addIdea() {
+    const content = ideaInput.value.trim();
+    const tagsRaw = tagsInput.value.trim();
+    if (!content) return alert("Digite uma ideia!");
 
-function searchTag(tag) {
-  search.value = tag;
-  render();
-}
+    const idea = {
+      id: Date.now(),
+      content,
+      tags: tagsRaw ? tagsRaw.split(",").map(t => t.trim().toLowerCase()) : [],
+      createdAt: new Date().toLocaleString()
+    };
 
-function deleteIdea(id) {
-  ideas = ideas.filter(i => i.id !== id);
-  saveLocal();
-  render();
-}
+    ideas.unshift(idea);
+    users[currentUser].ideas = ideas;
+    saveUsers();
+    renderIdeas();
 
-function editIdea(id) {
-  const idea = ideas.find(i => i.id === id);
-  const novo = prompt("Editar ideia:", idea.text);
-  if (!novo) return;
-  idea.text = novo;
-  saveLocal();
-  render();
-}
+    ideaInput.value = "";
+    tagsInput.value = "";
+  }
 
-render();
+  function deleteIdea(id) {
+    ideas = ideas.filter(i => i.id !== id);
+    users[currentUser].ideas = ideas;
+    saveUsers();
+    renderIdeas();
+  }
+
+  function editIdea(id) {
+    const idea = ideas.find(i => i.id === id);
+    const txt = prompt("Editar ideia:", idea.content);
+    if (!txt) return;
+    idea.content = txt;
+    saveUsers();
+    renderIdeas();
+  }
+
+  function renderIdeas() {
+    const search = searchInput.value.toLowerCase();
+    ideasList.innerHTML = "";
+
+    ideas
+      .filter(i =>
+        i.content.toLowerCase().includes(search) ||
+        i.tags.some(t => t.includes(search))
+      )
+      .forEach(idea => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="idea-card">
+            <p>${idea.content}</p>
+            <div>
+              ${idea.tags.map(t => `<span class="tag">#${t}</span>`).join("")}
+            </div>
+            <small>${idea.createdAt}</small>
+            <div class="actions">
+              <button onclick="editIdea(${idea.id})">✏️</button>
+              <button onclick="deleteIdea(${idea.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+        ideasList.appendChild(li);
+      });
+  }
+
+  if (currentUser && users[currentUser]) {
+    loginBox.classList.add("hidden");
+    appBox.classList.remove("hidden");
+    ideas = users[currentUser].ideas || [];
+    renderIdeas();
+  }
 </script>
 
 </body>
 </html>
-
