@@ -1,382 +1,241 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>IdeaFlow</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>IdeaFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<style>
-  :root {
-    --bg-main: #020617;
-    --bg-card: #0f172a;
-    --bg-soft: #020617;
-    --border: #1e293b;
-    --text-main: #e5e7eb;
-    --text-muted: #94a3b8;
-    --primary: #2563eb;
-    --danger: #ef4444;
-  }
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-card: #0f172a;
+      --border: #1e293b;
+      --text-main: #e5e7eb;
+      --text-muted: #94a3b8;
+      --primary: #2563eb;
+    }
 
-  * {
-    box-sizing: border-box;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  body {
-    margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-      Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg-main);
-    color: var(--text-main);
-    line-height: 1.6;
-  }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+    }
 
-  header {
-    text-align: center;
-    padding: 60px 20px 40px;
-  }
+    header {
+      text-align: center;
+      padding: 50px 20px 30px;
+    }
 
-  header h1 {
-    margin: 0;
-    font-size: 3rem;
-    font-weight: 700;
-    letter-spacing: -1px;
-  }
+    header h1 {
+      margin: 0;
+      font-size: 2.6rem;
+    }
 
-  header p {
-    margin-top: 12px;
-    color: var(--text-muted);
-    font-size: 1.05rem;
-  }
+    header p {
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
 
-  .container {
-    max-width: 820px;
-    margin: auto;
-    padding: 20px;
-  }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
 
-  .idea-box {
-    background: linear-gradient(
-      180deg,
-      rgba(37, 99, 235, 0.05),
-      rgba(15, 23, 42, 1)
-    );
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 26px;
-    margin-bottom: 40px;
-  }
+    .idea-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
 
-  .idea-box h2 {
-    margin-top: 0;
-    font-size: 1.3rem;
-    font-weight: 600;
-  }
+    textarea,
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text-main);
+    }
 
-  textarea,
-  input {
-    width: 100%;
-    padding: 14px 16px;
-    margin-top: 12px;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-    background: var(--bg-soft);
-    color: var(--text-main);
-    font-size: 0.95rem;
-    outline: none;
-  }
+    button {
+      margin-top: 16px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-  textarea::placeholder,
-  input::placeholder {
-    color: var(--text-muted);
-  }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
 
-  textarea:focus,
-  input:focus {
-    border-color: var(--primary);
-  }
+    .idea-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
 
-  button {
-    margin-top: 18px;
-    padding: 14px;
-    width: 100%;
-    border: none;
-    border-radius: 14px;
-    background: var(--primary);
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-  }
+    .tag {
+      display: inline-block;
+      background: rgba(37,99,235,0.15);
+      color: #93c5fd;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-right: 6px;
+    }
 
-  button:hover {
-    transform: translateY(-1px);
-    opacity: 0.95;
-  }
+    .actions {
+      text-align: right;
+    }
 
-  ul {
-    list-style: none;
-    padding: 0;
-  }
+    .actions button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      width: auto;
+    }
 
-  .idea-card {
-    background: var(--bg-card);
-    padding: 20px;
-    border-radius: 18px;
-    margin-bottom: 18px;
-    border: 1px solid var(--border);
-  }
-
-  .idea-card p {
-    margin: 0 0 12px;
-    font-size: 1rem;
-  }
-
-  .tags {
-    margin-bottom: 10px;
-  }
-
-  .tag {
-    display: inline-block;
-    background: rgba(37, 99, 235, 0.15);
-    color: #93c5fd;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    margin-right: 6px;
-  }
-
-  .idea-card small {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-  }
-
-  .actions {
-    margin-top: 10px;
-    text-align: right;
-  }
-
-  .actions button {
-    background: none;
-    border: none;
-    width: auto;
-    padding: 6px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    opacity: 0.7;
-  }
-
-  .actions button:hover {
-    opacity: 1;
-  }
-
-  footer {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-  }
-  /* === Refinamento dos cartões de ideia === */
-
-.idea-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.idea-card p {
-  font-size: 1.05rem;
-  line-height: 1.5;
-  font-weight: 500;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.idea-card small {
-  color: var(--text-muted);
-  font-size: 0.75rem;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.actions button {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  padding: 6px 10px;
-  font-size: 0.95rem;
-  transition: background 0.15s ease, opacity 0.15s ease;
-}
-
-.actions button:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-</style>
+    footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+  </style>
 </head>
 
 <body>
+  <header>
+    <h1>IdeaFlow</h1>
+    <p>Capture e desenvolva suas ideias</p>
+  </header>
 
-<header>
-  <h1>IdeaFlow</h1>
-  <p>Visão geral das suas ideias</p>
-</header>
+  <div class="container">
+    <div class="idea-box">
+      <h2>💡 Nova ideia</h2>
 
-<div class="container">
+      <textarea id="ideaInput" placeholder="Digite sua ideia..."></textarea>
+      <input id="tagsInput" placeholder="Tags (ex: app, negócio, IA)" />
 
-<div id="loginBox" class="box">
-  <h2>Login</h2>
-  <input id="loginUser" placeholder="Usuário">
-  <input id="loginPass" type="password" placeholder="Senha">
-  <button onclick="login()">Entrar</button>
-</div>
-
-<div id="appBox" class="hidden">
-
-<div class="box">
-  <button onclick="logout()">Logout</button>
-</div>
-
-<!-- DASHBOARD -->
-<div class="box">
-  <h2>📊 Dashboard</h2>
-  <div class="dashboard">
-    <div class="stat idea">
-      <h3 id="totalIdeas">0</h3>
-      <p>Total de ideias</p>
+      <button onclick="addIdea()">Salvar ideia</button>
     </div>
-    <div class="stat doing">
-      <h3 id="doingIdeas">0</h3>
-      <p>Em andamento</p>
-    </div>
-    <div class="stat done">
-      <h3 id="doneIdeas">0</h3>
-      <p>Concluídas</p>
-    </div>
+
+    <ul id="ideasList"></ul>
   </div>
-</div>
 
-<div class="box">
-  <h2>💡 Nova ideia</h2>
-  <textarea id="ideaInput" placeholder="Ideia principal"></textarea>
-  <input id="tagsInput" placeholder="Tags (ex: app, IA)">
-  <input id="nextStepInput" placeholder="Próximo passo">
-  <select id="statusInput">
-    <option>Ideia</option>
-    <option>Em andamento</option>
-    <option>Concluída</option>
-  </select>
-  <textarea id="notesInput" placeholder="Notas / desenvolvimento"></textarea>
-  <button onclick="addIdea()">Salvar ideia</button>
-</div>
+  <footer>
+    IdeaFlow © GPJ
+  </footer>
 
-<div class="box">
-  <input id="searchInput" placeholder="Pesquisar..." oninput="renderIdeas()">
-</div>
+  <script>
+    /* 🔒 PROTEÇÃO DE LOGIN */
+    const currentUser = localStorage.getItem("currentUser");
+    if (!currentUser) {
+      window.location.href = "login.html";
+    }
 
-<ul id="ideasList"></ul>
+    /* 📦 DADOS */
+    const users = JSON.parse(localStorage.getItem("users")) || {};
+    let ideas = users[currentUser]?.ideas || [];
 
-</div>
-</div>
+    function saveAll() {
+      users[currentUser].ideas = ideas;
+      localStorage.setItem("users", JSON.stringify(users));
+    }
 
-<script>
- const currentUser = localStorage.getItem("currentUser");
+    /* ➕ ADICIONAR IDEIA (NÃO ALTEREI A LÓGICA BASE) */
+    function addIdea() {
+      const content = ideaInput.value.trim();
+      const tagsRaw = tagsInput.value.trim();
 
-  if (!currentUser) {
-    window.location.href = "login.html";
-  } const currentUser = localStorage.getItem("currentUser");
+      if (!content) {
+        alert("Digite uma ideia!");
+        return;
+      }
 
-  if (!currentUser) {
-    window.location.href = "login.html";
-  }
-let users=JSON.parse(localStorage.getItem("users"))||{};
-let currentUser=localStorage.getItem("currentUser");
-let ideas=[];
+      const idea = {
+        id: Date.now(),
+        content,
+        tags: tagsRaw ? tagsRaw.split(",").map(t => t.trim()) : [],
+        createdAt: new Date().toLocaleString()
+      };
 
-function saveUsers(){
-  localStorage.setItem("users",JSON.stringify(users));
-}
+      ideas.unshift(idea);
+      saveAll();
+      renderIdeas();
 
-function login(){
-  if(!users[loginUser.value]){
-    users[loginUser.value]={password:loginPass.value,ideas:[]};
-  }
-  if(users[loginUser.value].password!==loginPass.value)
-    return alert("Senha incorreta");
-  localStorage.setItem("currentUser",loginUser.value);
-  location.reload();
-}
+      ideaInput.value = "";
+      tagsInput.value = "";
+    }
 
-function logout(){
-  localStorage.removeItem("currentUser");
-  location.reload();
-}
+    function deleteIdea(id) {
+      ideas = ideas.filter(i => i.id !== id);
+      saveAll();
+      renderIdeas();
+    }
 
-function addIdea(){
-  if(!ideaInput.value.trim()) return alert("Digite uma ideia");
-  ideas.unshift({
-    id:Date.now(),
-    content:ideaInput.value,
-    tags:tagsInput.value.split(",").map(t=>t.trim()),
-    nextStep:nextStepInput.value,
-    status:statusInput.value,
-    notes:notesInput.value,
-    createdAt:new Date().toLocaleString()
-  });
-  users[currentUser].ideas=ideas;
-  saveUsers();
-  ideaInput.value=tagsInput.value=nextStepInput.value=notesInput.value="";
-  renderIdeas();
-}
+    function editIdea(id) {
+      const idea = ideas.find(i => i.id === id);
+      const text = prompt("Editar ideia:", idea.content);
+      if (!text) return;
+      idea.content = text;
+      saveAll();
+      renderIdeas();
+    }
 
-function updateDashboard(){
-  totalIdeas.innerText=ideas.length;
-  doingIdeas.innerText=ideas.filter(i=>i.status==="Em andamento").length;
-  doneIdeas.innerText=ideas.filter(i=>i.status==="Concluída").length;
-}
+    function renderIdeas() {
+      ideasList.innerHTML = "";
 
-function deleteIdea(id){
-  ideas=ideas.filter(i=>i.id!==id);
-  users[currentUser].ideas=ideas;
-  saveUsers();
-  renderIdeas();
-}
+      if (ideas.length === 0) {
+        ideasList.innerHTML = "<p style='color:#94a3b8'>Nenhuma ideia ainda.</p>";
+        return;
+      }
 
-function renderIdeas(){
-  const s=searchInput.value.toLowerCase();
-  ideasList.innerHTML="";
-  ideas.filter(i=>i.content.toLowerCase().includes(s)||i.tags.join().includes(s))
-  .forEach(i=>{
-    ideasList.innerHTML+=`
-    <li class="idea-card">
-      <strong>${i.content}</strong>
-      <span class="status ${i.status}">${i.status}</span>
-      <p><b>Próximo passo:</b> ${i.nextStep||"-"}</p>
-      <p>${i.notes||""}</p>
-      ${i.tags.map(t=>`<span class="tag">#${t}</span>`).join("")}
-      <div class="actions">
-        <button onclick="deleteIdea(${i.id})">🗑️</button>
-      </div>
-    </li>`;
-  });
-  updateDashboard();
-}
+      ideas.forEach(idea => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="idea-card">
+            <strong>${idea.content}</strong>
 
-if(currentUser){
-  loginBox.classList.add("hidden");
-  appBox.classList.remove("hidden");
-  ideas=users[currentUser]?.ideas||[];
-  renderIdeas();
-}
-</script>
+            <div>
+              ${idea.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")}
+            </div>
 
+            <small>${idea.createdAt}</small>
+
+            <div class="actions">
+              <button onclick="editIdea(${idea.id})">✏️</button>
+              <button onclick="deleteIdea(${idea.id})">🗑️</button>
+            </div>
+          </div>
+        `;
+        ideasList.appendChild(li);
+      });
+    }
+
+    renderIdeas();
+  </script>
 </body>
 </html>
