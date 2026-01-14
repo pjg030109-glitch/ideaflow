@@ -24,27 +24,69 @@
       font-family: system-ui, sans-serif;
       background: var(--bg-main);
       color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
     }
 
-    header {
-      text-align: center;
-      padding: 50px 20px 30px;
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      background: #020617;
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+    }
+
+    .sidebar input {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text-main);
+    }
+
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-btn {
+      background: rgba(37,99,235,0.15);
+      color: #93c5fd;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      border: none;
+    }
+
+    .tag-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      padding: 30px;
     }
 
     header h1 {
       margin: 0;
-      font-size: 2.6rem;
+      font-size: 2.4rem;
     }
 
     header p {
       color: var(--text-muted);
-      margin-top: 10px;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
+      margin-top: 8px;
     }
 
     .idea-box {
@@ -52,11 +94,11 @@
       border: 1px solid var(--border);
       border-radius: 18px;
       padding: 24px;
-      margin-bottom: 30px;
+      margin: 30px 0;
     }
 
     textarea,
-    input {
+    .idea-box input {
       width: 100%;
       padding: 14px;
       margin-top: 12px;
@@ -116,64 +158,63 @@
       font-size: 1rem;
       width: auto;
     }
-
-    footer {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
   </style>
 </head>
 
 <body>
-  <header>
-    <h1>IdeaFlow</h1>
-    <p>Capture e desenvolva suas ideias</p>
-  </header>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>🔍 Filtros</h2>
 
-  <div class="container">
+    <input
+      id="searchInput"
+      placeholder="Pesquisar por texto..."
+      oninput="applyFilters()"
+    />
+
+    <strong>Tags</strong>
+    <div class="tags-list" id="tagsFilter"></div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header>
+      <h1>IdeaFlow</h1>
+      <p>Capture e organize suas ideias</p>
+    </header>
+
     <div class="idea-box">
       <h2>💡 Nova ideia</h2>
 
       <textarea id="ideaInput" placeholder="Digite sua ideia..."></textarea>
-      <input id="tagsInput" placeholder="Tags (ex: app, negócio, IA)" />
+      <input id="tagsInput" placeholder="Tags (ex: app, IA, negócio)" />
 
       <button onclick="addIdea()">Salvar ideia</button>
     </div>
 
     <ul id="ideasList"></ul>
-  </div>
-
-  <footer>
-    IdeaFlow © GPJ
-  </footer>
+  </main>
 
   <script>
-    /* 🔒 PROTEÇÃO DE LOGIN */
+    /* 🔒 LOGIN */
     const currentUser = localStorage.getItem("currentUser");
-    if (!currentUser) {
-      window.location.href = "login.html";
-    }
+    if (!currentUser) window.location.href = "login.html";
 
-    /* 📦 DADOS */
     const users = JSON.parse(localStorage.getItem("users")) || {};
     let ideas = users[currentUser]?.ideas || [];
+
+    let activeTag = null;
+    let searchText = "";
 
     function saveAll() {
       users[currentUser].ideas = ideas;
       localStorage.setItem("users", JSON.stringify(users));
     }
 
-    /* ➕ ADICIONAR IDEIA (NÃO ALTEREI A LÓGICA BASE) */
     function addIdea() {
       const content = ideaInput.value.trim();
       const tagsRaw = tagsInput.value.trim();
-
-      if (!content) {
-        alert("Digite uma ideia!");
-        return;
-      }
+      if (!content) return alert("Digite uma ideia!");
 
       const idea = {
         id: Date.now(),
@@ -184,15 +225,8 @@
 
       ideas.unshift(idea);
       saveAll();
-      renderIdeas();
-
       ideaInput.value = "";
       tagsInput.value = "";
-    }
-
-    function deleteIdea(id) {
-      ideas = ideas.filter(i => i.id !== id);
-      saveAll();
       renderIdeas();
     }
 
@@ -205,26 +239,61 @@
       renderIdeas();
     }
 
+    function deleteIdea(id) {
+      ideas = ideas.filter(i => i.id !== id);
+      saveAll();
+      renderIdeas();
+    }
+
+    function applyFilters() {
+      searchText = searchInput.value.toLowerCase();
+      renderIdeas();
+    }
+
+    function toggleTag(tag) {
+      activeTag = activeTag === tag ? null : tag;
+      renderIdeas();
+    }
+
+    function renderTags() {
+      const tags = [...new Set(ideas.flatMap(i => i.tags))];
+      tagsFilter.innerHTML = "";
+
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.className = "tag-btn" + (activeTag === tag ? " active" : "");
+        btn.innerText = "#" + tag;
+        btn.onclick = () => toggleTag(tag);
+        tagsFilter.appendChild(btn);
+      });
+    }
+
     function renderIdeas() {
       ideasList.innerHTML = "";
 
-      if (ideas.length === 0) {
-        ideasList.innerHTML = "<p style='color:#94a3b8'>Nenhuma ideia ainda.</p>";
+      let filtered = ideas.filter(i => {
+        const matchText =
+          i.content.toLowerCase().includes(searchText);
+        const matchTag =
+          !activeTag || i.tags.includes(activeTag);
+        return matchText && matchTag;
+      });
+
+      if (filtered.length === 0) {
+        ideasList.innerHTML =
+          "<p style='color:#94a3b8'>Nenhuma ideia encontrada.</p>";
         return;
       }
 
-      ideas.forEach(idea => {
+      filtered.forEach(idea => {
         const li = document.createElement("li");
         li.innerHTML = `
           <div class="idea-card">
             <strong>${idea.content}</strong>
-
             <div>
               ${idea.tags.map(tag => `<span class="tag">#${tag}</span>`).join("")}
             </div>
-
             <small>${idea.createdAt}</small>
-
             <div class="actions">
               <button onclick="editIdea(${idea.id})">✏️</button>
               <button onclick="deleteIdea(${idea.id})">🗑️</button>
@@ -233,6 +302,8 @@
         `;
         ideasList.appendChild(li);
       });
+
+      renderTags();
     }
 
     renderIdeas();
