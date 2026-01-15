@@ -119,7 +119,7 @@ button.primary {
 
 <aside>
   <h3>🏷️ Tags</h3>
-  <button onclick="filterByTag(null)">Todas</button>
+  <button onclick="setActiveTag(null)">Todas</button>
   <div id="tagList"></div>
 </aside>
 
@@ -140,7 +140,7 @@ button.primary {
 <input
   id="searchInput"
   placeholder="Pesquisar por texto ou tag"
-  oninput="applyFilters()"
+  oninput="render()"
 />
 
 <div class="kanban">
@@ -189,14 +189,15 @@ function addIdea() {
   render();
 }
 
-function update(id, field, value) {
+function updateField(id, field, value) {
   const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
   idea[field] = value;
   save();
 }
 
 function changeStatus(id, status) {
-  update(id, "status", status);
+  updateField(id, "status", status);
   render();
 }
 
@@ -206,12 +207,8 @@ function deleteIdea(id) {
   render();
 }
 
-function filterByTag(tag) {
+function setActiveTag(tag) {
   activeTag = tag;
-  render();
-}
-
-function applyFilters() {
   render();
 }
 
@@ -222,7 +219,7 @@ function render() {
 
   const q = searchInput.value.toLowerCase();
 
-  ideas.filter(i => {
+  const visibleIdeas = ideas.filter(i => {
     if (activeTag && !i.tags.includes(activeTag)) return false;
     if (
       q &&
@@ -230,12 +227,15 @@ function render() {
       !i.tags.some(t => t.toLowerCase().includes(q))
     ) return false;
     return true;
-  }).forEach(idea => {
+  });
+
+  visibleIdeas.forEach(idea => {
     const card = document.createElement("div");
     card.className = "idea-card";
 
     card.innerHTML = `
-      <p contenteditable onblur="update(${idea.id}, 'content', this.innerText)">
+      <p contenteditable
+         onblur="updateField(${idea.id}, 'content', this.innerText)">
         ${idea.content}
       </p>
 
@@ -249,9 +249,14 @@ function render() {
         <option value="done" ${idea.status==="done"?"selected":""}>Finalizada</option>
       </select>
 
-      <textarea placeholder="Descrição" onblur="update(${idea.id}, 'details', this.value)">${idea.details}</textarea>
-      <textarea placeholder="Próximos passos" onblur="update(${idea.id}, 'steps', this.value)">${idea.steps}</textarea>
-      <textarea placeholder="Notas" onblur="update(${idea.id}, 'notes', this.value)">${idea.notes}</textarea>
+      <textarea placeholder="Descrição"
+        onblur="updateField(${idea.id}, 'details', this.value)">${idea.details}</textarea>
+
+      <textarea placeholder="Próximos passos"
+        onblur="updateField(${idea.id}, 'steps', this.value)">${idea.steps}</textarea>
+
+      <textarea placeholder="Notas"
+        onblur="updateField(${idea.id}, 'notes', this.value)">${idea.notes}</textarea>
 
       <div class="actions">
         <button onclick="deleteIdea(${idea.id})">🗑️</button>
@@ -265,14 +270,13 @@ function render() {
 }
 
 function renderTags() {
-  const tagSet = new Set();
-  ideas.forEach(i => i.tags.forEach(t => tagSet.add(t)));
-
   tagList.innerHTML = "";
-  tagSet.forEach(tag => {
+  const tags = [...new Set(ideas.flatMap(i => i.tags))];
+
+  tags.forEach(tag => {
     const btn = document.createElement("button");
     btn.textContent = "#"+tag;
-    btn.onclick = () => filterByTag(tag);
+    btn.onclick = () => setActiveTag(tag);
     tagList.appendChild(btn);
   });
 }
@@ -282,4 +286,3 @@ render();
 
 </body>
 </html>
-
