@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdeaFlow - Seu Banco de Insights</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --danger: #ef4444;
+            --edit: #f59e0b;
+            --bg: #f1f5f9;
+            --sidebar-bg: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* --- LAYOUT E SIDEBAR --- */
+        .sidebar {
+            width: 300px;
+            background: var(--sidebar-bg);
+            padding: 2rem;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* --- COMPONENTES --- */
+        h3 { margin: 0; font-size: 0.9rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .btn-main {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-main:hover { background: var(--primary-dark); }
+
+        /* --- BUSCA E FILTROS --- */
+        .search-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag-filter {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-filter.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* --- CARDS DE IDEIA --- */
+        .idea-card {
+            background: white;
+            padding: 1.5rem;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+
+        .idea-card:hover { transform: translateY(-2px); }
+
+        .idea-info strong { font-size: 1.1rem; display: block; margin-bottom: 5px; }
+
+        .tag-badge {
+            background: #eef2ff;
+            color: var(--primary);
+            padding: 3px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .actions { display: flex; gap: 8px; }
+        .btn-action { 
+            border: none; 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+        .btn-edit { background: var(--edit); color: white; }
+        .btn-delete { background: var(--danger); color: white; }
+        .btn-action:hover { opacity: 0.8; }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">🌊 IdeaFlow</div>
+        
+        <div class="search-box">
+            <h3>Pesquisar</h3>
+            <input type="text" id="searchInput" placeholder="O que você procura?" onkeyup="displayIdeas()">
+        </div>
+
+        <div>
+            <h3>Filtrar por Tag</h3>
+            <div id="filterTags" class="filter-tags"></div>
+        </div>
+
+        <div class="input-group">
+            <h3>Nova Ideia</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="ideaInput" placeholder="Título da ideia...">
+            <input type="text" id="tagInput" placeholder="Tag (ex: Projeto, Draft)">
+            <button id="saveBtn" class="btn-main" onclick="saveIdea()">Salvar no Fluxo</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div id="ideasList"></div>
+    </main>
+
+    <script>
+        let selectedTag = null;
+
+        document.addEventListener('DOMContentLoaded', displayIdeas);
+
+        function saveIdea() {
+            const name = document.getElementById('ideaInput').value;
+            const tag = document.getElementById('tagInput').value.trim();
+            const editId = document.getElementById('editId').value;
+
+            if (!name || !tag) return alert("Por favor, preencha o nome e a tag.");
+
+            let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
+
+            if (editId) {
+                ideas = ideas.map(item => item.id == editId ? { ...item, name, tag } : item);
+                document.getElementById('editId').value = '';
+                document.getElementById('saveBtn').innerText = 'Salvar no Fluxo';
+            } else {
+                ideas.push({ name, tag, id: Date.now() });
+            }
+
+            localStorage.setItem('ideaflow_data', JSON.stringify(ideas));
+            resetForm();
+            displayIdeas();
+        }
+
+        function deleteIdea(id) {
+            if (confirm("Deseja remover esta ideia do seu fluxo?")) {
+                let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
+                ideas = ideas.filter(item => item.id !== id);
+                localStorage.setItem('ideaflow_data', JSON.stringify(ideas));
+                displayIdeas();
+            }
+        }
+
+        function editIdea(id) {
+            const ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
+            const idea = ideas.find(item => item.id === id);
+            document.getElementById('ideaInput').value = idea.name;
+            document.getElementById('tagInput').value = idea.tag;
+            document.getElementById('editId').value = idea.id;
+            document.getElementById('saveBtn').innerText = 'Atualizar Ideia';
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function resetForm() {
+            document.getElementById('ideaInput').value = '';
+            document.getElementById('tagInput').value = '';
+        }
+
+        function toggleTagFilter(tag) {
+            selectedTag = (selectedTag === tag) ? null : tag;
+            displayIdeas();
+        }
+
+        function updateFilterTags(ideas) {
+            const filterContainer = document.getElementById('filterTags');
+            const tags = [...new Set(ideas.map(i => i.tag))];
+            
+            if (tags.length === 0) {
+                filterContainer.innerHTML = '<span style="font-size:0.8rem; color: #94a3b8;">Nenhuma tag criada.</span>';
+                return;
+            }
+
+            filterContainer.innerHTML = tags.map(tag => `
+                <button class="tag-filter ${selectedTag === tag ? 'active' : ''}" 
+                        onclick="toggleTagFilter('${tag}')">${tag}</button>
+            `).join('');
+        }
+
+        function displayIdeas() {
+            const list = document.getElementById('ideasList');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let ideas = JSON.parse(localStorage.getItem('ideaflow_data') || '[]');
+            
+            updateFilterTags(ideas);
+
+            let filtered = ideas.filter(idea => {
+                const matchesSearch = idea.name.toLowerCase().includes(searchTerm);
+                const matchesTag = selectedTag ? idea.tag === selectedTag : true;
+                return matchesSearch && matchesTag;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#94a3b8; margin-top:50px;">Nenhuma ideia encontrada.</div>';
+                return;
+            }
+
+            list.innerHTML = filtered.sort((a,b) => b.id - a.id).map(idea => `
+                <div class="idea-card">
+                    <div class="idea-info">
+                        <strong>${idea.name}</strong>
+                        <span class="tag-badge">${idea.tag}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-action btn-edit" title="Editar" onclick="editIdea(${idea.id})">✏️</button>
+                        <button class="btn-action btn-delete" title="Excluir" onclick="deleteIdea(${idea.id})">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
