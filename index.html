@@ -22,7 +22,7 @@
 
 body{
 margin:0;
-font-family:system-ui;
+font-family:system-ui, sans-serif;
 background:var(--bg);
 color:var(--text);
 display:flex;
@@ -89,7 +89,7 @@ padding:16px;
 margin-bottom:14px;
 display:flex;
 flex-direction:column;
-gap:8px;
+gap:10px;
 }
 
 .badge{
@@ -97,6 +97,7 @@ font-size:.7rem;
 padding:4px 8px;
 border-radius:999px;
 margin-right:6px;
+display:inline-block;
 }
 
 .status-idea{background:#334155}
@@ -106,6 +107,10 @@ margin-right:6px;
 .prio-low{background:#334155}
 .prio-mid{background:#2563eb}
 .prio-high{background:var(--red)}
+
+.tag{
+background:#1e40af;
+}
 
 .actions{
 display:flex;
@@ -127,19 +132,19 @@ width:auto;
 <body>
 
 <aside class="sidebar">
-<h2>🔍 Filtro</h2>
-<input id="searchInput" placeholder="Pesquisar..." oninput="renderIdeas()">
+<h2>🔍 Pesquisa</h2>
+<input id="searchInput" placeholder="Texto ou #tag" oninput="renderIdeas()">
 </aside>
 
 <main class="main">
 <h1>IdeaFlow</h1>
-<p style="color:var(--muted)">Evolua suas ideias</p>
+<p style="color:var(--muted)">Organize, evolua e priorize ideias</p>
 
 <div class="idea-box">
 <h2>💡 Nova ideia</h2>
 
 <textarea id="ideaInput" placeholder="Descreva a ideia"></textarea>
-<input id="tagsInput" placeholder="Tags (ex: app, IA)">
+<input id="tagsInput" placeholder="Tags (ex: app, IA, marketing)">
 <select id="statusInput">
 <option value="idea">Ideia</option>
 <option value="progress">Em progresso</option>
@@ -166,16 +171,19 @@ let ideas = users[currentUser]?.ideas || [];
 
 function save(){
 users[currentUser].ideas = ideas;
-localStorage.setItem("users",JSON.stringify(users));
+localStorage.setItem("users", JSON.stringify(users));
 }
 
 function addIdea(){
 if(!ideaInput.value.trim()) return alert("Digite a ideia");
 
-ideas.push({
+ideas.unshift({
 id:Date.now(),
-content:ideaInput.value,
-tags:tagsInput.value.split(",").map(t=>t.trim()).filter(Boolean),
+content:ideaInput.value.trim(),
+tags: tagsInput.value
+  .split(",")
+  .map(t=>t.trim().toLowerCase())
+  .filter(Boolean),
 status:statusInput.value,
 priority:priorityInput.value,
 pinned:false,
@@ -215,16 +223,20 @@ const q = searchInput.value.toLowerCase();
 const list = document.getElementById("ideasList");
 list.innerHTML="";
 
-let sorted = [...ideas]
-.filter(i=>i.content.toLowerCase().includes(q))
-.sort((a,b)=>{
-if(a.pinned!==b.pinned) return b.pinned-a.pinned;
+let filtered = ideas.filter(i=>{
+const textMatch = i.content.toLowerCase().includes(q);
+const tagMatch = i.tags.some(t => t.includes(q.replace("#","")));
+return textMatch || tagMatch;
+});
+
+let sorted = filtered.sort((a,b)=>{
+if(a.pinned!==b.pinned) return b.pinned - a.pinned;
 const p={high:3,mid:2,low:1};
 return p[b.priority]-p[a.priority];
 });
 
 if(!sorted.length){
-list.innerHTML="<p style='color:#94a3b8'>Nenhuma ideia</p>";
+list.innerHTML="<p style='color:#94a3b8'>Nenhuma ideia encontrada</p>";
 return;
 }
 
@@ -234,12 +246,12 @@ list.innerHTML+=`
 <strong>${i.pinned?"📌 ":""}${i.content}</strong>
 
 <div>
-<span class="badge status-${i.status}">
-${i.status}
-</span>
-<span class="badge prio-${i.priority}">
-${i.priority}
-</span>
+<span class="badge status-${i.status}">${i.status}</span>
+<span class="badge prio-${i.priority}">${i.priority}</span>
+</div>
+
+<div>
+${i.tags.map(t=>`<span class="badge tag">#${t}</span>`).join("")}
 </div>
 
 <small>${i.created}</small>
