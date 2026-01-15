@@ -6,56 +6,132 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #020617;
+  background: linear-gradient(180deg, #020617, #020617);
   color: #e5e7eb;
 }
 
-.container {
-  max-width: 800px;
-  margin: auto;
-  padding: 20px;
+.topbar {
+  position: sticky;
+  top: 0;
+  background: #020617;
+  border-bottom: 1px solid #1e293b;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
 }
 
-textarea, input {
-  width: 100%;
-  margin-top: 10px;
-  padding: 12px;
-  background: #020617;
+.topbar button {
+  background: #0f172a;
   color: #e5e7eb;
   border: 1px solid #1e293b;
   border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
-  background: #2563eb;
-  border: none;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 30px 20px 60px;
+}
+
+.title {
+  font-size: 2.4rem;
+  font-weight: bold;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+
+.section {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  color: #c7d2fe;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 0.95rem;
+}
+
+textarea:focus,
+.title:focus {
+  outline: 2px solid #2563eb;
+}
+
+footer {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 40px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="topbar">
   <button onclick="goBack()">⬅ Voltar</button>
+  <strong>IdeaFlow</strong>
+</div>
 
-  <h1 contenteditable id="title"></h1>
+<div class="container">
+  <div
+    class="title"
+    id="title"
+    contenteditable="true"
+    spellcheck="false"
+  ></div>
 
-  <h3>Descrição</h3>
-  <textarea id="details"></textarea>
+  <div class="subtitle">
+    Desenvolva esta ideia com calma e profundidade
+  </div>
 
-  <h3>Próximos passos</h3>
-  <textarea id="steps"></textarea>
+  <div class="section">
+    <h3>📝 Descrição</h3>
+    <textarea id="details" placeholder="Explique a ideia em detalhes..."></textarea>
+  </div>
 
-  <h3>Notas</h3>
-  <textarea id="notes"></textarea>
+  <div class="section">
+    <h3>🧩 Próximos passos</h3>
+    <textarea id="steps" placeholder="Quais são os próximos passos?"></textarea>
+  </div>
+
+  <div class="section">
+    <h3>📌 Notas</h3>
+    <textarea id="notes" placeholder="Observações, referências, insights..."></textarea>
+  </div>
+
+  <footer>
+    IdeaFlow © GPJ
+  </footer>
 </div>
 
 <script>
@@ -81,17 +157,17 @@ steps.value = idea.steps || "";
 notes.value = idea.notes || "";
 
 function save() {
-  idea.content = title.innerText;
+  idea.content = title.innerText.trim();
   idea.details = details.value;
   idea.steps = steps.value;
   idea.notes = notes.value;
   localStorage.setItem("ideas", JSON.stringify(ideas));
 }
 
-title.onblur = save;
-details.onblur = save;
-steps.onblur = save;
-notes.onblur = save;
+title.addEventListener("blur", save);
+details.addEventListener("blur", save);
+steps.addEventListener("blur", save);
+notes.addEventListener("blur", save);
 
 function goBack() {
   window.location.href = "index.html";
@@ -100,3 +176,4 @@ function goBack() {
 
 </body>
 </html>
+
