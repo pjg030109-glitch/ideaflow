@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>IdeaFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #020617;
+  color: #e5e7eb;
+  display: flex;
+}
+
+aside {
+  width: 220px;
+  background: #020617;
+  border-right: 1px solid #1e293b;
+  padding: 20px;
+}
+
+aside h3 {
+  margin-top: 0;
+}
+
+aside button {
+  width: 100%;
+  margin-bottom: 8px;
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+textarea, input, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+}
+
+button.primary {
+  margin-top: 10px;
+  padding: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.column {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.idea-card {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.idea-card p {
+  outline: none;
+}
+
+.tag {
+  display: inline-block;
+  background: #2563eb;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  margin-right: 4px;
+}
+
+.actions {
+  text-align: right;
+  margin-top: 6px;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<aside>
+  <h3>🏷️ Tags</h3>
+  <button onclick="setActiveTag(null)">Todas</button>
+  <div id="tagList"></div>
+</aside>
+
+<main>
+
+<header>
+  <h1>IdeaFlow</h1>
+  <p>Organize, desenvolva e finalize ideias</p>
+</header>
+
+<section>
+  <h2>💡 Nova ideia</h2>
+  <textarea id="ideaInput" placeholder="Ideia"></textarea>
+  <input id="tagsInput" placeholder="Tags separadas por vírgula">
+  <button class="primary" onclick="addIdea()">Salvar ideia</button>
+</section>
+
+<input
+  id="searchInput"
+  placeholder="Pesquisar por texto ou tag"
+  oninput="render()"
+/>
+
+<div class="kanban">
+  <div class="column">
+    <h3>💡 Ideias</h3>
+    <div id="col-idea"></div>
+  </div>
+  <div class="column">
+    <h3>🚧 Em progresso</h3>
+    <div id="col-progress"></div>
+  </div>
+  <div class="column">
+    <h3>✅ Finalizadas</h3>
+    <div id="col-done"></div>
+  </div>
+</div>
+
+</main>
+
+<script>
+let ideas = JSON.parse(localStorage.getItem("ideas")) || [];
+let activeTag = null;
+
+function save() {
+  localStorage.setItem("ideas", JSON.stringify(ideas));
+}
+
+function addIdea() {
+  const content = ideaInput.value.trim();
+  if (!content) return alert("Digite uma ideia");
+
+  ideas.unshift({
+    id: Date.now(),
+    content,
+    tags: tagsInput.value.split(",").map(t => t.trim()).filter(Boolean),
+    status: "idea",
+    details: "",
+    steps: "",
+    notes: "",
+    createdAt: new Date().toLocaleString()
+  });
+
+  ideaInput.value = "";
+  tagsInput.value = "";
+  save();
+  render();
+}
+
+function updateField(id, field, value) {
+  const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
+  idea[field] = value;
+  save();
+}
+
+function changeStatus(id, status) {
+  updateField(id, "status", status);
+  render();
+}
+
+function deleteIdea(id) {
+  ideas = ideas.filter(i => i.id !== id);
+  save();
+  render();
+}
+
+function setActiveTag(tag) {
+  activeTag = tag;
+  render();
+}
+
+function render() {
+  ["idea","progress","done"].forEach(s => {
+    document.getElementById("col-"+s).innerHTML = "";
+  });
+
+  const q = searchInput.value.toLowerCase();
+
+  const visibleIdeas = ideas.filter(i => {
+    if (activeTag && !i.tags.includes(activeTag)) return false;
+    if (
+      q &&
+      !i.content.toLowerCase().includes(q) &&
+      !i.tags.some(t => t.toLowerCase().includes(q))
+    ) return false;
+    return true;
+  });
+
+  visibleIdeas.forEach(idea => {
+    const card = document.createElement("div");
+    card.className = "idea-card";
+
+    card.innerHTML = `
+      <p contenteditable
+         onblur="updateField(${idea.id}, 'content', this.innerText)">
+        ${idea.content}
+      </p>
+
+      <div>
+        ${idea.tags.map(t => `<span class="tag">#${t}</span>`).join("")}
+      </div>
+
+      <select onchange="changeStatus(${idea.id}, this.value)">
+        <option value="idea" ${idea.status==="idea"?"selected":""}>Ideia</option>
+        <option value="progress" ${idea.status==="progress"?"selected":""}>Em progresso</option>
+        <option value="done" ${idea.status==="done"?"selected":""}>Finalizada</option>
+      </select>
+
+      <textarea placeholder="Descrição"
+        onblur="updateField(${idea.id}, 'details', this.value)">${idea.details}</textarea>
+
+      <textarea placeholder="Próximos passos"
+        onblur="updateField(${idea.id}, 'steps', this.value)">${idea.steps}</textarea>
+
+      <textarea placeholder="Notas"
+        onblur="updateField(${idea.id}, 'notes', this.value)">${idea.notes}</textarea>
+
+      <div class="actions">
+  <button onclick="openIdea(${idea.id})">🔍 Abrir</button>
+  <button onclick="deleteIdea(${idea.id})">🗑️</button>
+</div>
+    `;
+
+    document.getElementById("col-"+idea.status).appendChild(card);
+  });
+
+  renderTags();
+}
+
+function renderTags() {
+  tagList.innerHTML = "";
+  const tags = [...new Set(ideas.flatMap(i => i.tags))];
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.textContent = "#"+tag;
+    btn.onclick = () => setActiveTag(tag);
+    tagList.appendChild(btn);
+  });
+}
+
+render();
+  function openIdea(id) {
+  window.location.href = `idea.html?id=${id}`;
+}
+</script>
+
+</body>
+</html>
