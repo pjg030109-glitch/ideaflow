@@ -547,6 +547,26 @@
         document.getElementById('btn-logout').onclick = () => signOut(auth);
         window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); };
         document.getElementById('search-input').onkeyup = renderAll;
+        // --- CÓDIGO PARA O PWA (APP) ---
+
+// Registro do Service Worker para permitir instalação
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+    .then(() => console.log("GPJ App: Sistema carregado para uso offline"))
+    .catch(err => console.log("Erro ao registrar PWA:", err));
+}
+
+// Vincula o arquivo manifest.json ao seu HTML
+const linkPWA = document.createElement('link');
+linkPWA.rel = 'manifest';
+linkPWA.href = 'manifest.json';
+document.head.appendChild(linkPWA);
+
+// Adiciona meta tag para cor do tema no mobile
+const metaTheme = document.createElement('meta');
+metaTheme.name = 'theme-color';
+metaTheme.content = '#6366f1';
+document.head.appendChild(metaTheme);
     </script>
 </body>
 </html>
