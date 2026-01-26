@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.3 | GPJ AI Edition</title>
+    <title>IdeaFlow Pro v3.4 | GPJ Time-Horizon</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -40,13 +40,18 @@
         input:focus, textarea:focus { outline: none; border-color: var(--primary); }
         textarea { min-height: 80px; resize: vertical; width: 100%; box-sizing: border-box; }
 
-        /* Estilo da Sugestão de IA */
         .ai-suggestion { font-size: 0.65rem; color: var(--primary); font-weight: 800; margin-top: -5px; margin-bottom: 5px; display: none; cursor: pointer; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .view-tabs { display: flex; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px; margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); background: transparent; transition: 0.3s; }
         .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+        /* Estilo dos Filtros de Prazo */
+        .deadline-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .deadline-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .deadline-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .deadline-btn.urgent.active { background: var(--danger); border-color: var(--danger); }
 
         #list-view-container, #kanban-view-container, #dashboard-view-container { display: none; }
 
@@ -181,7 +186,17 @@
 
         <main class="main-content">
             <div id="list-view-container" style="display:block;">
-                <h2 style="margin-top:0;">Lista Estruturada</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <h2 style="margin:0;">Lista Estruturada</h2>
+                </div>
+                
+                <div class="deadline-filters">
+                    <button class="deadline-btn active" id="dl-all" onclick="window.setDeadlineFilter('all')">Todos</button>
+                    <button class="deadline-btn urgent" id="dl-1" onclick="window.setDeadlineFilter(1)">Próx. 24h</button>
+                    <button class="deadline-btn" id="dl-7" onclick="window.setDeadlineFilter(7)">Próx. 7 dias</button>
+                    <button class="deadline-btn" id="dl-30" onclick="window.setDeadlineFilter(30)">Próx. 30 dias</button>
+                </div>
+
                 <div id="ideasList" style="max-width:850px; margin:0 auto;"></div>
             </div>
 
@@ -250,10 +265,10 @@
 
         let allIdeas = [];
         let activeTagFilter = null;
+        let activeDeadlineFilter = 'all'; // NOVO: Estado do filtro de prazo
         let financeChart = null;
         let statusChart = null;
 
-        // NOVO: Lógica de Smart Tags AI
         const aiKeywords = {
             'Marketing': ['vendas', 'anuncio', 'campanha', 'social', 'instagram', 'cliente', 'marca', 'publico'],
             'Financeiro': ['dinheiro', 'investimento', 'custo', 'lucro', 'pagamento', 'caixa', 'banco', 'faturamento'],
@@ -266,15 +281,10 @@
             const text = (document.getElementById('idea-title').value + " " + document.getElementById('idea-desc').value).toLowerCase();
             const suggestionBox = document.getElementById('ai-tag-suggestion');
             const suggestionName = document.getElementById('ai-tag-name');
-            
             let bestTag = null;
             for (const [tag, keywords] of Object.entries(aiKeywords)) {
-                if (keywords.some(k => text.includes(k))) {
-                    bestTag = tag;
-                    break;
-                }
+                if (keywords.some(k => text.includes(k))) { bestTag = tag; break; }
             }
-
             if (bestTag && document.getElementById('idea-tag').value === "") {
                 suggestionName.innerText = bestTag;
                 suggestionBox.style.display = 'block';
@@ -289,6 +299,15 @@
             document.getElementById('ai-tag-suggestion').style.display = 'none';
         };
 
+        // NOVO: Função de Filtro de Prazo
+        window.setDeadlineFilter = (mode) => {
+            activeDeadlineFilter = mode;
+            document.querySelectorAll('.deadline-btn').forEach(btn => btn.classList.remove('active'));
+            const map = { 'all': 'dl-all', 1: 'dl-1', 7: 'dl-7', 30: 'dl-30' };
+            document.getElementById(map[mode]).classList.add('active');
+            renderAll();
+        };
+
         document.getElementById('idea-title').addEventListener('input', detectSmartTag);
         document.getElementById('idea-desc').addEventListener('input', detectSmartTag);
 
@@ -296,7 +315,7 @@
             const email = document.getElementById('login-email').value;
             if(!email) return alert("Por favor, digite seu e-mail no campo acima.");
             sendPasswordResetEmail(auth, email)
-                .then(() => alert("E-mail de redefinição de senha enviado! Verifique sua caixa de entrada."))
+                .then(() => alert("E-mail de redefinição de senha enviado!"))
                 .catch(e => alert("Erro: " + e.message));
         };
 
@@ -308,10 +327,7 @@
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
-                if(user && !user.emailVerified) {
-                    alert("Por favor, confirme seu e-mail antes de acessar!");
-                    signOut(auth);
-                }
+                if(user && !user.emailVerified) { alert("Confirme seu e-mail!"); signOut(auth); }
             }
         });
 
@@ -324,26 +340,15 @@
                 updateStats();
                 renderAll();
                 updateDashboard();
-                const openId = document.getElementById('current-focus-id')?.value;
-                if(openId) window.openFocus(openId);
             });
         }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('#list-view-container, #kanban-view-container, #dashboard-view-container').forEach(c => c.style.display = 'none');
-            
-            if(tab === 'list') {
-                document.getElementById('tab-list-btn').classList.add('active');
-                document.getElementById('list-view-container').style.display = 'block';
-            } else if(tab === 'kanban') {
-                document.getElementById('tab-kanban-btn').classList.add('active');
-                document.getElementById('kanban-view-container').style.display = 'grid';
-            } else if(tab === 'dash') {
-                document.getElementById('tab-dash-btn').classList.add('active');
-                document.getElementById('dashboard-view-container').style.display = 'block';
-                updateDashboard();
-            }
+            if(tab === 'list') { document.getElementById('tab-list-btn').classList.add('active'); document.getElementById('list-view-container').style.display = 'block'; }
+            else if(tab === 'kanban') { document.getElementById('tab-kanban-btn').classList.add('active'); document.getElementById('kanban-view-container').style.display = 'grid'; }
+            else if(tab === 'dash') { document.getElementById('tab-dash-btn').classList.add('active'); document.getElementById('dashboard-view-container').style.display = 'block'; updateDashboard(); }
         }
         document.getElementById('tab-list-btn').onclick = () => switchTab('list');
         document.getElementById('tab-kanban-btn').onclick = () => switchTab('kanban');
@@ -361,97 +366,50 @@
             const vals = { pendente: 0, andamento: 0, concluida: 0 };
             const counts = { pendente: 0, andamento: 0, concluida: 0 };
             let totalMoney = 0;
-
             allIdeas.forEach(i => {
                 const val = parseFloat(i.value) || 0;
-                if(vals[i.status] !== undefined) {
-                    vals[i.status] += val;
-                    counts[i.status]++;
-                    totalMoney += val;
-                }
+                if(vals[i.status] !== undefined) { vals[i.status] += val; counts[i.status]++; totalMoney += val; }
             });
-
             const totalIdeas = allIdeas.length;
             const efficiency = totalIdeas > 0 ? Math.round((counts.concluida / totalIdeas) * 100) : 0;
-            const effEl = document.getElementById('dash-efficiency-index');
+            document.getElementById('dash-efficiency-index').innerText = `${efficiency}%`;
+            
             const tagEl = document.getElementById('efficiency-tag');
             const healthEl = document.getElementById('health-check-msg');
-
-            effEl.innerText = `${efficiency}%`;
-            
-            if(efficiency >= 70) {
-                tagEl.innerText = "ALTA PRODUTIVIDADE";
-                tagEl.style.background = "var(--success)";
-                tagEl.style.color = "white";
-                healthEl.innerText = "Excelente! O seu fluxo de execução está saudável.";
-                healthEl.style.background = "rgba(16, 185, 129, 0.1)";
-                healthEl.style.color = "var(--success)";
-            } else if(efficiency >= 30) {
-                tagEl.innerText = "RITMO ESTÁVEL";
-                tagEl.style.background = "var(--warning)";
-                tagEl.style.color = "white";
-                healthEl.innerText = "Bom ritmo, mas tente concluir as tarefas em curso.";
-                healthEl.style.background = "rgba(245, 158, 11, 0.1)";
-                healthEl.style.color = "var(--warning)";
-            } else {
-                tagEl.innerText = "ALERTA DE SOBRECARGA";
-                tagEl.style.background = "var(--danger)";
-                tagEl.style.color = "white";
-                healthEl.innerText = "Atenção: Muitas ideias pendentes. Foque na execução!";
-                healthEl.style.background = "rgba(239, 68, 68, 0.1)";
-                healthEl.style.color = "var(--danger)";
-            }
+            if(efficiency >= 70) { tagEl.innerText = "ALTA PRODUTIVIDADE"; tagEl.style.background = "var(--success)"; healthEl.innerText = "Excelente!"; }
+            else if(efficiency >= 30) { tagEl.innerText = "RITMO ESTÁVEL"; tagEl.style.background = "var(--warning)"; healthEl.innerText = "Mantenha o foco."; }
+            else { tagEl.innerText = "ALERTA DE SOBRECARGA"; tagEl.style.background = "var(--danger)"; healthEl.innerText = "Foque na execução!"; }
 
             document.getElementById('dash-total-money').innerText = `R$ ${totalMoney.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            
             const ctxFin = document.getElementById('financeChart').getContext('2d');
             const ctxStat = document.getElementById('statusChart').getContext('2d');
-            
             if(financeChart) financeChart.destroy();
             if(statusChart) statusChart.destroy();
-
-            financeChart = new Chart(ctxFin, {
-                type: 'bar',
-                data: {
-                    labels: ['Potencial (Pend)', 'Em Execução', 'Realizado (Conc)'],
-                    datasets: [{
-                        label: 'Valor R$',
-                        data: [vals.pendente, vals.andamento, vals.concluida],
-                        backgroundColor: ['#64748b', '#f59e0b', '#10b981'],
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: {display: false} }
-                }
-            });
-
-            statusChart = new Chart(ctxStat, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pendente', 'Em Curso', 'Concluída'],
-                    datasets: [{
-                        data: [counts.pendente, counts.andamento, counts.concluida],
-                        backgroundColor: ['#64748b', '#f59e0b', '#10b981'],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: {position: 'bottom'} }
-                }
-            });
+            financeChart = new Chart(ctxFin, { type: 'bar', data: { labels: ['Pend', 'And', 'Conc'], datasets: [{ data: [vals.pendente, vals.andamento, vals.concluida], backgroundColor: ['#64748b', '#f59e0b', '#10b981'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } } });
+            statusChart = new Chart(ctxStat, { type: 'doughnut', data: { labels: ['Pend', 'And', 'Conc'], datasets: [{ data: [counts.pendente, counts.andamento, counts.concluida], backgroundColor: ['#64748b', '#f59e0b', '#10b981'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {position: 'bottom'} } } });
         }
 
         function renderAll() {
             const term = document.getElementById('search-input').value.toLowerCase();
+            const now = new Date().getTime();
+
             let filtered = allIdeas.filter(i => {
                 const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
                 const matchTag = !activeTagFilter || i.tag === activeTagFilter;
-                return matchSearch && matchTag;
+                
+                // Lógica de Filtro de Prazo
+                let matchDeadline = true;
+                if(activeDeadlineFilter !== 'all' && i.deadline) {
+                    const dlDate = new Date(i.deadline).getTime();
+                    const diffDays = (dlDate - now) / (1000 * 60 * 60 * 24);
+                    if(activeDeadlineFilter === 1) matchDeadline = diffDays <= 1 && diffDays >= -1;
+                    else if(activeDeadlineFilter === 7) matchDeadline = diffDays <= 7 && diffDays >= -1;
+                    else if(activeDeadlineFilter === 30) matchDeadline = diffDays <= 30 && diffDays >= -1;
+                } else if (activeDeadlineFilter !== 'all' && !i.deadline) {
+                    matchDeadline = false;
+                }
+
+                return matchSearch && matchTag && matchDeadline;
             }).sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
             
             document.getElementById('ideasList').innerHTML = filtered.map(i => createCardHTML(i)).join('');
@@ -463,7 +421,16 @@
 
         function createCardHTML(i) {
             const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
-            const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block;">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
+            
+            // NOVO: Cálculo visual de urgência no card
+            let dlStyle = "";
+            if(i.deadline) {
+                const diff = (new Date(i.deadline).getTime() - new Date().getTime()) / (1000*60*60*24);
+                if(diff < 1) dlStyle = "color: var(--danger); font-weight: 800; border: 1px solid var(--danger);";
+                else if(diff < 7) dlStyle = "color: var(--warning); font-weight: 800; border: 1px solid var(--warning);";
+            }
+
+            const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block; ${dlStyle}">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
             const valueDisplay = i.value && i.value > 0 ? `<span class="value-badge">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>` : '';
             const tasksTotal = i.checklist?.length || 0;
             const tasksDone = i.checklist?.filter(t => t.done).length || 0;
@@ -479,7 +446,7 @@
                             ${deadlineInfo} ${progressDisplay}
                         </div>
                         <div onclick="event.stopPropagation()" style="display:flex; gap:8px; opacity:0.6;">
-                            <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; font-size:1rem;">${i.pinned ? '📍' : '📌'}</button>
+                            <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; font-size:1rem;">📌</button>
                             <button onclick="window.editIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">✏️</button>
                             <button onclick="window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">🗑️</button>
                         </div>
@@ -504,11 +471,8 @@
                     const card = document.querySelector('.dragging');
                     if(!card) return;
                     const id = card.dataset.id;
-                    const oldStatus = card.dataset.status;
                     const newStatus = column.dataset.status;
-                    if (id && newStatus !== oldStatus) {
-                        await updateDoc(doc(db, "ideas", id), { status: newStatus, updatedAt: Date.now() });
-                    }
+                    if (id) await updateDoc(doc(db, "ideas", id), { status: newStatus, updatedAt: Date.now() });
                 });
             });
         }
@@ -544,18 +508,12 @@
                 updatedAt: Date.now()
             };
             if(!data.title) return;
-            
-            if(id) {
-                await updateDoc(doc(db, "ideas", id), data);
-                document.getElementById('edit-id').value = "";
-                document.getElementById('btn-save').innerText = "Lançar no Ecossistema";
-                showToast("Dados atualizados!");
-            } else {
-                await addDoc(collection(db, "ideas"), { ...data, pinned: false, checklist: [], createdAt: Date.now() });
-                showToast("Insight gravado!");
-            }
+            if(id) await updateDoc(doc(db, "ideas", id), data);
+            else await addDoc(collection(db, "ideas"), { ...data, pinned: false, checklist: [], createdAt: Date.now() });
             ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline','idea-link'].forEach(f => document.getElementById(f).value = '');
-            document.getElementById('ai-tag-suggestion').style.display = 'none';
+            document.getElementById('edit-id').value = "";
+            document.getElementById('btn-save').innerText = "Lançar no Ecossistema";
+            showToast("Insight processado!");
         };
 
         window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
@@ -571,35 +529,23 @@
         window.openFocus = id => {
             const i = allIdeas.find(x => x.id === id);
             if(!i) return;
-            const valDisplay = i.value ? `R$ ${parseFloat(i.value).toLocaleString('pt-BR')}` : 'Não definido';
-            
             document.getElementById('focus-content').innerHTML = `
                 <input type="hidden" id="current-focus-id" value="${i.id}">
                 <span onclick="window.closeFocus()" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:1.5rem;">×</span>
-                <p style="color:var(--primary); font-size:0.6rem; font-weight:900; letter-spacing:1px;">DOCUMENTO ESTRATÉGICO</p>
+                <p style="color:var(--primary); font-size:0.6rem; font-weight:900;">DOCUMENTO ESTRATÉGICO</p>
                 <h2 style="margin:10px 0 5px;">${i.title}</h2>
-                <p style="margin:0 0 15px 0; color:var(--success); font-weight:800;">Valor Estimado: ${valDisplay}</p>
-                <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; font-size:0.95rem; line-height:1.6; white-space:pre-wrap;">${i.desc || 'Sem notas detalhadas.'}</div>
-                
-                <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
-                    ${i.link ? `<a href="${i.link}" target="_blank" style="background:rgba(99,102,241,0.1); color:var(--primary); padding:8px 15px; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.8rem;">🔗 Link Externo</a>` : ''}
-                    <button class="btn-gpj" style="font-size:0.7rem; padding:8px 15px; width:auto;" onclick="window.exportPDF('${i.id}')">📄 Gerar PDF</button>
+                <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; white-space:pre-wrap;">${i.desc || 'Sem notas.'}</div>
+                <div id="check-items-list" style="margin-top:20px;">
+                    ${(i.checklist || []).map((t, idx) => `
+                        <div class="check-item">
+                            <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
+                            <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
+                        </div>
+                    `).join('')}
                 </div>
-                <div style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
-                    <h4 style="margin:0 0 10px 0; font-size:0.7rem; letter-spacing:1px; color:var(--text-muted); text-transform:uppercase;">Plano de Execução</h4>
-                    <div id="check-items-list">
-                        ${(i.checklist || []).map((t, idx) => `
-                            <div class="check-item">
-                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
-                                <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
-                                <span onclick="window.removeTask('${i.id}', ${idx})" style="cursor:pointer; opacity:0.3; font-size:0.8rem;">🗑️</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="new-task" placeholder="Adicionar nova tarefa..." style="flex:1; padding:8px;">
-                        <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto; padding:8px 15px;">+</button>
-                    </div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                    <input type="text" id="new-task" placeholder="Nova tarefa..." style="flex:1;">
+                    <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto;">+</button>
                 </div>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
@@ -618,54 +564,22 @@
             newList[idx].done = !newList[idx].done;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
         };
-        window.removeTask = async (id, idx) => {
-            const i = allIdeas.find(x => x.id === id);
-            const newList = i.checklist.filter((_, index) => index !== idx);
-            await updateDoc(doc(db, "ideas", id), { checklist: newList });
-        };
         window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; };
-        
-        window.exportPDF = (id) => {
-            const i = allIdeas.find(x => x.id === id);
-            const { jsPDF } = window.jspdf;
-            const docPdf = new jsPDF();
-            docPdf.setFontSize(20); docPdf.text("GPJ ENTERPRISES", 10, 20);
-            docPdf.setFontSize(14); docPdf.text(`Projeto: ${i.title}`, 10, 35);
-            docPdf.text(`Valor: R$ ${i.value || 0}`, 10, 45);
-            docPdf.text(`Status: ${i.status} | Prazo: ${i.deadline || 'N/A'}`, 10, 55);
-            docPdf.setFontSize(12);
-            const splitDesc = docPdf.splitTextToSize(i.desc || "Sem descrição.", 180);
-            docPdf.text(splitDesc, 10, 70);
-            let y = 70 + (splitDesc.length * 7);
-            if(i.checklist && i.checklist.length > 0) {
-                docPdf.text("CHECKLIST DE TAREFAS:", 10, y + 10);
-                i.checklist.forEach((t, idx) => {
-                    docPdf.text(`${t.done ? "[X]" : "[ ]"} ${t.text}`, 15, y + 20 + (idx * 7));
-                });
-            }
-            docPdf.save(`Relatorio_GPJ_${i.title}.pdf`);
-        };
 
         document.getElementById('btn-login').onclick = () => {
             signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                .catch(e => alert("Falha no login: E-mail ou senha incorretos."));
+                .catch(e => alert("Erro no login."));
         };
 
         document.getElementById('btn-signup').onclick = () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
-            const agreed = document.getElementById('agree-terms').checked;
-
-            if(!email || !pass) return alert("Preencha todos os campos.");
-            if(!agreed) return alert("Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar sua conta.");
-
-            createUserWithEmailAndPassword(auth, email, pass)
-                .then((u) => {
-                    sendEmailVerification(u.user);
-                    alert("Conta criada! Enviamos um e-mail de confirmação. Verifique sua caixa de entrada.");
-                    signOut(auth);
-                })
-                .catch(e => alert("Erro ao criar conta: " + e.message));
+            if(!document.getElementById('agree-terms').checked) return alert("Aceite os termos.");
+            createUserWithEmailAndPassword(auth, email, pass).then((u) => {
+                sendEmailVerification(u.user);
+                alert("Verifique seu e-mail!");
+                signOut(auth);
+            }).catch(e => alert(e.message));
         };
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
