@@ -19,134 +19,177 @@
             --text: #f1f5f9; --text-muted: #94a3b8; --border: #334155;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100vh; transition: 0.3s; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100vh; transition: 0.3s; overflow-x: hidden; }
         
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-card { background: var(--sidebar-bg); padding: 2rem; border-radius: 12px; width: 100%; max-width: 600px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal-card { background: var(--sidebar-bg); padding: 2.5rem; border-radius: 20px; width: 100%; max-width: 550px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
 
         #main-app { display: none; width: 100%; }
         
-        .sidebar { width: 320px; background: var(--sidebar-bg); padding: 1.5rem; border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
-        .main-content { flex: 1; padding: 2rem; box-sizing: border-box; }
+        .sidebar { width: 350px; background: var(--sidebar-bg); padding: 1.5rem; border-right: 1px solid var(--border); height: 100vh; position: sticky; top: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box; }
+        .main-content { flex: 1; padding: 2rem; box-sizing: border-box; overflow-y: auto; height: 100vh; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .stat-item { background: var(--bg); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .stat-val { display: block; font-weight: 800; font-size: 1.1rem; color: var(--primary); }
-        .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 5px; }
+        .stat-item { background: rgba(0,0,0,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+        .stat-val { display: block; font-weight: 900; font-size: 1.1rem; color: var(--primary); }
+        .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-top: 3px; }
 
-        .input-group { display: flex; flex-direction: column; gap: 10px; background: var(--bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); }
-        input, select, textarea { padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.03); padding: 20px; border-radius: 15px; border: 1px solid var(--border); }
+        .row-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        input, select, textarea { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; transition: 0.2s; flex: 1; min-width: 100px; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        textarea { min-height: 80px; resize: vertical; width: 100%; box-sizing: border-box; }
+
+        .view-tabs { display: flex; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px; margin-bottom: 5px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); background: transparent; transition: 0.3s; }
+        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+        #list-view-container, #kanban-view-container, #dashboard-view-container { display: none; }
+
+        .kanban-container { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .kanban-column { background: rgba(0,0,0,0.02); border-radius: 18px; padding: 15px; min-height: 80vh; border: 2px dashed transparent; transition: 0.3s; }
+        .kanban-column.drag-over { background: rgba(99, 102, 241, 0.1); border-color: var(--primary); }
+        .kanban-column h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 15px; text-align: center; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .dash-card { background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .total-money { font-size: 2.5rem; font-weight: 900; color: var(--success); letter-spacing: -1px; margin: 10px 0; }
         
-        .tab-container { display: flex; background: var(--bg); padding: 4px; border-radius: 8px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); background: transparent; transition: 0.2s; }
-        .tab-btn.active { background: var(--primary); color: white; }
-
-        .idea-card { background: var(--card-bg); padding: 1rem; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: grab; }
+        .idea-card { background: var(--card-bg); padding: 1.2rem; margin-bottom: 15px; border-radius: 15px; border: 1px solid var(--border); position: relative; transition: 0.2s; cursor: grab; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         .idea-card:hover { border-color: var(--primary); transform: translateY(-2px); }
-        .prio-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 10px 0 0 10px; }
+        .idea-card.dragging { opacity: 0.5; }
+        .prio-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; border-radius: 15px 0 0 15px; }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+        .tag-pill { font-size: 0.65rem; padding: 5px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.1); color: var(--primary); cursor: pointer; font-weight: 700; border: 1px solid transparent; }
+        .tag-pill.active { background: var(--primary); color: white; }
+        .value-badge { color: var(--success); font-weight: 800; font-size: 0.8rem; margin-left: 8px; }
 
-        .btn-primary { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-primary:hover { background: var(--primary-dark); }
-
-        .kanban-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .kanban-column { background: rgba(0,0,0,0.02); border-radius: 10px; padding: 10px; min-height: 60vh; }
-
-        .check-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-        .check-text { font-size: 0.9rem; flex: 1; }
+        .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px; transition: 0.2s; }
+        .check-item:hover { background: var(--card-bg); }
+        .check-text { flex: 1; font-size: 0.9rem; color: var(--text); }
         .check-done { text-decoration: line-through; opacity: 0.5; }
+
+        .btn-gpj { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
+        .btn-gpj:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
+        .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); font-weight: 600; }
+
+        @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
+    <div id="toast-container"></div>
     <div id="focus-modal" class="overlay" style="display:none;"><div class="modal-card" id="focus-content"></div></div>
 
     <div id="auth-container" class="overlay">
-        <div class="modal-card" style="max-width:350px; text-align:center;">
-            <h2>IdeaFlow Pro</h2>
-            <input type="email" id="login-email" placeholder="E-mail" style="width:100%; margin-bottom:10px; box-sizing: border-box;">
-            <input type="password" id="login-pass" placeholder="Senha" style="width:100%; margin-bottom:10px; box-sizing: border-box;">
+        <div class="modal-card" style="max-width:380px; text-align:center;">
+            <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 15px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 900;">IF</div>
+            <h2 style="color:var(--text); margin:0;">Bem-vindo à GPJ</h2>
+            <p style="font-size:0.7rem; letter-spacing:2px; color:var(--text-muted); margin-bottom:2rem; text-transform: uppercase;">Acesso IdeaFlow Pro</p>
+            <input type="email" id="login-email" placeholder="E-mail" style="width:100%; margin-bottom:12px; box-sizing: border-box;">
+            <input type="password" id="login-pass" placeholder="Senha" style="width:100%; margin-bottom:12px; box-sizing: border-box;">
             
-            <button class="btn-primary" id="btn-login" style="width:100%; margin-bottom:10px;">Entrar</button>
-            <button class="btn-primary" id="btn-signup" style="width:100%; background:none; color:var(--text); border:1px solid var(--border);">Criar Empresa (Free)</button>
-            
-            <div style="margin-top: 15px; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
-                Ao continuar, você concorda com nossos <br>
-                <a href="termos.html" target="_blank" style="color: var(--primary); text-decoration: none;">Termos de Uso</a> e 
-                <a href="privacidade.html" target="_blank" style="color: var(--primary); text-decoration: none;">Política de Privacidade</a>.
-            </div>
+            <button onclick="window.resetPassword()" style="background:none; border:none; color:var(--primary); font-size:0.75rem; cursor:pointer; font-weight:bold; margin-bottom:20px; text-decoration:underline;">Esqueci minha senha</button>
+
+            <button class="btn-gpj" id="btn-login" style="margin-bottom:10px;">Entrar</button>
+            <button class="btn-gpj" id="btn-signup" style="background:none; color:var(--text); border:1px solid var(--border);">Criar Conta</button>
         </div>
     </div>
 
     <div id="main-app">
         <aside class="sidebar">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="margin:0; color:var(--primary); font-size:1.2rem;">IdeaFlow <small style="font-size:0.6rem; color:var(--text-muted)">v3.1</small></h2>
-                <button onclick="window.toggleTheme()" style="background:none; border:none; cursor:pointer;">🌙</button>
+                <div>
+                    <span style="font-weight:900; color:var(--primary); font-size:1.4rem; letter-spacing:-1px;">IdeaFlow</span>
+                    <p style="margin:0; font-size:0.5rem; color:var(--text-muted); font-weight:700; letter-spacing:1px;">GPJ ENTERPRISES</p>
+                </div>
+                <button onclick="window.toggleTheme()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🌙</button>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-item"><span class="stat-val" id="count-pendente">0</span><span class="stat-label">Pend</span></div>
-                <div class="stat-item"><span class="stat-val" id="count-andamento">0</span><span class="stat-label">Ação</span></div>
-                <div class="stat-item"><span class="stat-val" id="count-concluida">0</span><span class="stat-label">ROI</span></div>
+                <div class="stat-item"><span class="stat-val" id="count-andamento">0</span><span class="stat-label">Curso</span></div>
+                <div class="stat-item"><span class="stat-val" id="count-concluida">0</span><span class="stat-label">Feito</span></div>
             </div>
 
-            <div class="tab-container">
+            <div class="view-tabs">
                 <button class="tab-btn active" id="tab-list-btn">LISTA</button>
                 <button class="tab-btn" id="tab-kanban-btn">KANBAN</button>
-                <button class="tab-btn" id="tab-dash-btn">DASH</button>
+                <button class="tab-btn" id="tab-dash-btn">DASHBOARD</button>
             </div>
 
             <div class="input-group">
                 <input type="hidden" id="edit-id">
-                <input type="text" id="idea-title" placeholder="Título da Ideia/Projeto">
-                <textarea id="idea-desc" placeholder="Descrição detalhada..."></textarea>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <input type="text" id="idea-title" placeholder="Título do Insight Principal">
+                <textarea id="idea-desc" placeholder="Notas estratégicas..."></textarea>
+                <input type="url" id="idea-link" placeholder="Link de Referência">
+                
+                <div class="row-group">
                     <input type="date" id="idea-deadline">
-                    <input type="text" id="idea-tag" placeholder="Tag/Categoria">
+                    <input type="text" id="idea-tag" placeholder="Tag (Ex: Marketing)">
                 </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                
+                <div class="row-group">
                     <input type="number" id="idea-val" placeholder="Valor R$">
                     <select id="idea-prio">
-                        <option value="baixa">Prioridade: Baixa</option>
-                        <option value="media" selected>Prioridade: Média</option>
-                        <option value="alta">Prioridade: Alta</option>
+                        <option value="baixa">Baixa</option>
+                        <option value="media">Média</option>
+                        <option value="alta">Alta</option>
                     </select>
                 </div>
+                
                 <select id="idea-status">
                     <option value="pendente">Status: Pendente</option>
-                    <option value="andamento">Status: Em Andamento</option>
+                    <option value="andamento">Status: Em Curso</option>
                     <option value="concluida">Status: Concluída</option>
                 </select>
-                <button class="btn-primary" id="btn-save">Salvar Insight</button>
+                <button class="btn-gpj" id="btn-save">Lançar no Ecossistema</button>
             </div>
 
-            <input type="text" id="search-input" placeholder="🔍 Pesquisar...">
+            <input type="text" id="search-input" placeholder="🔍 Pesquisar..." style="background:rgba(0,0,0,0.05); border:none; width:100%; box-sizing:border-box; padding:12px; border-radius:10px;">
+            <div id="tag-filters" class="tag-cloud"></div>
             
-            <div style="margin-top: auto; padding-top: 20px;">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <a href="termos.html" target="_blank" style="font-size: 0.65rem; color: var(--text-muted); text-decoration: none;">Termos</a>
-                    <a href="privacidade.html" target="_blank" style="font-size: 0.65rem; color: var(--text-muted); text-decoration: none;">Privacidade</a>
-                </div>
-                <button id="btn-logout" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.75rem; font-weight:bold; text-align:left; padding:0;">SAIR DA SESSÃO</button>
+            <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border);">
+                <button id="btn-logout" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.7rem; font-weight:700; padding:0;">ENCERRAR SESSÃO</button>
             </div>
         </aside>
 
         <main class="main-content">
-            <div id="list-view" style="display:block;"><div id="ideasList"></div></div>
-
-            <div id="kanban-view" class="kanban-container" style="display:none;">
-                <div class="kanban-column" data-status="pendente"><h3>Pendente</h3><div id="k-pendente"></div></div>
-                <div class="kanban-column" data-status="andamento"><h3>Ação</h3><div id="k-andamento"></div></div>
-                <div class="kanban-column" data-status="concluida"><h3>ROI</h3><div id="k-concluida"></div></div>
+            <div id="list-view-container" style="display:block;">
+                <h2 style="margin-top:0;">Lista Estruturada</h2>
+                <div id="ideasList" style="max-width:850px; margin:0 auto;"></div>
             </div>
 
-            <div id="dash-view" style="display:none;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <div class="stat-item" style="padding:30px;">
-                        <span class="stat-label">Valor Total sob Gestão</span>
-                        <div id="dash-total-money" style="font-size:2.2rem; font-weight:900; color:var(--success);">R$ 0,00</div>
+            <div id="kanban-view-container" class="kanban-container">
+                <div class="kanban-column" data-status="pendente"><h3>Pendente</h3><div id="k-pendente"></div></div>
+                <div class="kanban-column" data-status="andamento"><h3>Em Curso</h3><div id="k-andamento"></div></div>
+                <div class="kanban-column" data-status="concluida"><h3>Concluída</h3><div id="k-concluida"></div></div>
+            </div>
+
+            <div id="dashboard-view-container">
+                <h2 style="margin-top:0;">Visão Executiva</h2>
+                <div class="dashboard-grid">
+                    <div class="dash-card">
+                        <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Valor Total em Pipeline</span>
+                        <div class="total-money" id="dash-total-money">R$ 0,00</div>
+                        <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">Soma de todos os projetos ativos.</p>
                     </div>
-                    <div class="stat-item"><canvas id="financeChart"></canvas></div>
+                    
+                    <div class="dash-card">
+                        <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Distribuição Financeira</span>
+                        <div style="height:200px; position:relative;">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Status dos Projetos</span>
+                        <div style="height:200px; position:relative; display:flex; justify-content:center;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -154,7 +197,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -170,7 +213,18 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         let allIdeas = [];
+        let activeTagFilter = null;
         let financeChart = null;
+        let statusChart = null;
+
+        // REDEFINIR SENHA
+        window.resetPassword = () => {
+            const email = document.getElementById('login-email').value;
+            if(!email) return alert("Por favor, digite seu e-mail no campo acima.");
+            sendPasswordResetEmail(auth, email)
+                .then(() => alert("E-mail de redefinição de senha enviado! Verifique sua caixa de entrada."))
+                .catch(e => alert("Erro: " + e.message));
+        };
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.emailVerified) {
@@ -180,87 +234,265 @@
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
-                if(user && !user.emailVerified) { alert("Por favor, verifique seu e-mail para acessar."); signOut(auth); }
+                if(user && !user.emailVerified) {
+                    alert("Por favor, confirme seu e-mail antes de acessar!");
+                    signOut(auth);
+                }
             }
         });
 
         function syncData(uid) {
             const q = query(collection(db, "ideas"), where("uid", "==", uid));
             onSnapshot(q, (snapshot) => {
-                allIdeas = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                allIdeas = [];
+                snapshot.forEach(doc => allIdeas.push({id: doc.id, ...doc.data()}));
+                updateTagCloud();
+                updateStats();
                 renderAll();
                 updateDashboard();
+                const openId = document.getElementById('current-focus-id')?.value;
+                if(openId) window.openFocus(openId);
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#list-view-container, #kanban-view-container, #dashboard-view-container').forEach(c => c.style.display = 'none');
+            
+            if(tab === 'list') {
+                document.getElementById('tab-list-btn').classList.add('active');
+                document.getElementById('list-view-container').style.display = 'block';
+            } else if(tab === 'kanban') {
+                document.getElementById('tab-kanban-btn').classList.add('active');
+                document.getElementById('kanban-view-container').style.display = 'grid';
+            } else if(tab === 'dash') {
+                document.getElementById('tab-dash-btn').classList.add('active');
+                document.getElementById('dashboard-view-container').style.display = 'block';
+                updateDashboard();
+            }
+        }
+        document.getElementById('tab-list-btn').onclick = () => switchTab('list');
+        document.getElementById('tab-kanban-btn').onclick = () => switchTab('kanban');
+        document.getElementById('tab-dash-btn').onclick = () => switchTab('dash');
+
+        function updateStats() {
+            const stats = { pendente: 0, andamento: 0, concluida: 0 };
+            allIdeas.forEach(i => { if(stats[i.status] !== undefined) stats[i.status]++; });
+            document.getElementById('count-pendente').innerText = stats.pendente;
+            document.getElementById('count-andamento').innerText = stats.andamento;
+            document.getElementById('count-concluida').innerText = stats.concluida;
+        }
+
+        function updateDashboard() {
+            const vals = { pendente: 0, andamento: 0, concluida: 0 };
+            const counts = { pendente: 0, andamento: 0, concluida: 0 };
+            let totalMoney = 0;
+
+            allIdeas.forEach(i => {
+                const val = parseFloat(i.value) || 0;
+                if(vals[i.status] !== undefined) {
+                    vals[i.status] += val;
+                    counts[i.status]++;
+                    totalMoney += val;
+                }
+            });
+
+            document.getElementById('dash-total-money').innerText = `R$ ${totalMoney.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            const ctxFin = document.getElementById('financeChart').getContext('2d');
+            const ctxStat = document.getElementById('statusChart').getContext('2d');
+            
+            if(financeChart) financeChart.destroy();
+            if(statusChart) statusChart.destroy();
+
+            financeChart = new Chart(ctxFin, {
+                type: 'bar',
+                data: {
+                    labels: ['Potencial (Pend)', 'Em Execução', 'Realizado (Conc)'],
+                    datasets: [{
+                        label: 'Valor R$',
+                        data: [vals.pendente, vals.andamento, vals.concluida],
+                        backgroundColor: ['#64748b', '#f59e0b', '#10b981'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: {display: false} }
+                }
+            });
+
+            statusChart = new Chart(ctxStat, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pendente', 'Em Curso', 'Concluída'],
+                    datasets: [{
+                        data: [counts.pendente, counts.andamento, counts.concluida],
+                        backgroundColor: ['#64748b', '#f59e0b', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: {position: 'bottom'} }
+                }
             });
         }
 
         function renderAll() {
             const term = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allIdeas.filter(i => i.title.toLowerCase().includes(term));
+            let filtered = allIdeas.filter(i => {
+                const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
+                const matchTag = !activeTagFilter || i.tag === activeTagFilter;
+                return matchSearch && matchTag;
+            }).sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
             
-            document.getElementById('ideasList').innerHTML = filtered.map(i => `
-                <div class="idea-card" onclick="window.openFocus('${i.id}')">
-                    <div class="prio-indicator" style="background:${i.prio==='alta'?'var(--danger)':i.prio==='media'?'var(--warning)':'var(--success)'}"></div>
-                    <div style="display:flex; justify-content:space-between; align-items:start;">
-                        <div>
-                            <span style="font-size:0.65rem; font-weight:bold; color:var(--primary)">#${i.tag || 'GERAL'}</span>
-                            <strong style="display:block; margin-top:3px;">${i.title}</strong>
-                            <span style="font-size:0.75rem; color:var(--success); font-weight:800;">R$ ${parseFloat(i.value||0).toLocaleString('pt-BR')}</span>
-                        </div>
-                        <button onclick="event.stopPropagation(); window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-
+            document.getElementById('ideasList').innerHTML = filtered.map(i => createCardHTML(i)).join('');
             ['pendente', 'andamento', 'concluida'].forEach(s => {
-                document.getElementById(`k-${s}`).innerHTML = filtered.filter(i => i.status === s).map(i => `
-                    <div class="idea-card" draggable="true" data-id="${i.id}" onclick="window.openFocus('${i.id}')" style="padding:10px; font-size:0.85rem;">
-                        <strong>${i.title}</strong>
-                    </div>
-                `).join('');
+                document.getElementById(`k-${s}`).innerHTML = filtered.filter(i => i.status === s).map(i => createCardHTML(i)).join('');
             });
             setupDragAndDrop();
-            updateCounts();
+        }
+
+        function createCardHTML(i) {
+            const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
+            const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block;">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
+            const valueDisplay = i.value && i.value > 0 ? `<span class="value-badge">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>` : '';
+            const tasksTotal = i.checklist?.length || 0;
+            const tasksDone = i.checklist?.filter(t => t.done).length || 0;
+            const progressDisplay = tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:800; margin-top:4px;">✅ ${tasksDone}/${tasksTotal} TAREFAS</div>` : '';
+
+            return `
+                <div class="idea-card" draggable="true" data-id="${i.id}" data-status="${i.status}" onclick="window.openFocus('${i.id}')">
+                    <div class="prio-indicator" style="background:${colors[i.prio]}"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <div style="flex:1">
+                            <div><span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag || 'Geral'} ${i.pinned ? '📌' : ''}</span>${valueDisplay}</div>
+                            <strong style="display:block; margin-top:2px; font-size:1rem;">${i.title}</strong>
+                            ${deadlineInfo} ${progressDisplay}
+                        </div>
+                        <div onclick="event.stopPropagation()" style="display:flex; gap:8px; opacity:0.6;">
+                            <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; font-size:1rem;">${i.pinned ? '📍' : '📌'}</button>
+                            <button onclick="window.editIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">✏️</button>
+                            <button onclick="window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem;">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         function setupDragAndDrop() {
-            const cards = document.querySelectorAll('.idea-card[draggable="true"]');
-            cards.forEach(c => {
-                c.addEventListener('dragstart', () => c.classList.add('dragging'));
-                c.addEventListener('dragend', () => c.classList.remove('dragging'));
+            const cards = document.querySelectorAll('.idea-card');
+            const columns = document.querySelectorAll('.kanban-column');
+            cards.forEach(card => {
+                card.addEventListener('dragstart', () => card.classList.add('dragging'));
+                card.addEventListener('dragend', () => card.classList.remove('dragging'));
             });
-            document.querySelectorAll('.kanban-column').forEach(col => {
-                col.addEventListener('dragover', e => e.preventDefault());
-                col.addEventListener('drop', async () => {
+            columns.forEach(column => {
+                column.addEventListener('dragover', e => { e.preventDefault(); column.classList.add('drag-over'); });
+                column.addEventListener('dragleave', () => column.classList.remove('drag-over'));
+                column.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    column.classList.remove('drag-over');
                     const card = document.querySelector('.dragging');
-                    if(card) await updateDoc(doc(db, "ideas", card.dataset.id), { status: col.dataset.status });
+                    if(!card) return;
+                    const id = card.dataset.id;
+                    const oldStatus = card.dataset.status;
+                    const newStatus = column.dataset.status;
+                    if (id && newStatus !== oldStatus) {
+                        await updateDoc(doc(db, "ideas", id), { status: newStatus, updatedAt: Date.now() });
+                    }
                 });
             });
         }
 
-        window.openFocus = (id) => {
+        window.editIdea = (id) => {
             const i = allIdeas.find(x => x.id === id);
-            document.getElementById('focus-content').innerHTML = `
-                <span onclick="window.closeFocus()" style="float:right; cursor:pointer; font-size:1.5rem;">&times;</span>
-                <h2 style="margin:0;">${i.title}</h2>
-                <div style="margin:15px 0; background:rgba(0,0,0,0.03); padding:15px; border-radius:10px; line-height:1.5;">${i.desc}</div>
-                
-                <h4>Plano de Execução</h4>
-                <div id="check-list">
-                    ${(i.checklist || []).map((t, idx) => `
-                        <div class="check-item">
-                            <input type="checkbox" ${t.done?'checked':''} onclick="window.toggleTask('${i.id}', ${idx})">
-                            <span class="check-text ${t.done?'check-done':''}">${t.text}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
-                    <input type="text" id="new-task" placeholder="Nova tarefa..." style="flex:1;">
-                    <button class="btn-primary" onclick="window.addTask('${i.id}')">+</button>
-                </div>
+            if(!i) return;
+            document.getElementById('edit-id').value = i.id;
+            document.getElementById('idea-title').value = i.title;
+            document.getElementById('idea-desc').value = i.desc || '';
+            document.getElementById('idea-link').value = i.link || '';
+            document.getElementById('idea-tag').value = i.tag || '';
+            document.getElementById('idea-deadline').value = i.deadline || '';
+            document.getElementById('idea-val').value = i.value || '';
+            document.getElementById('idea-status').value = i.status;
+            document.getElementById('idea-prio').value = i.prio;
+            document.getElementById('btn-save').innerText = "Atualizar Insight";
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
 
-                <div style="display:flex; gap:10px; margin-top:25px;">
-                    <button class="btn-primary" onclick="window.editIdea('${i.id}')">Editar</button>
-                    <button class="btn-primary" style="background:var(--success)" onclick="window.exportPDF('${i.id}')">Exportar PDF</button>
+        document.getElementById('btn-save').onclick = async () => {
+            const id = document.getElementById('edit-id').value;
+            const data = {
+                uid: auth.currentUser.uid,
+                title: document.getElementById('idea-title').value,
+                desc: document.getElementById('idea-desc').value,
+                link: document.getElementById('idea-link').value,
+                tag: document.getElementById('idea-tag').value || 'Geral',
+                deadline: document.getElementById('idea-deadline').value,
+                value: document.getElementById('idea-val').value || 0,
+                status: document.getElementById('idea-status').value,
+                prio: document.getElementById('idea-prio').value,
+                updatedAt: Date.now()
+            };
+            if(!data.title) return;
+            
+            if(id) {
+                await updateDoc(doc(db, "ideas", id), data);
+                document.getElementById('edit-id').value = "";
+                document.getElementById('btn-save').innerText = "Lançar no Ecossistema";
+                showToast("Dados atualizados!");
+            } else {
+                await addDoc(collection(db, "ideas"), { ...data, pinned: false, checklist: [], createdAt: Date.now() });
+                showToast("Insight gravado!");
+            }
+            ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline','idea-link'].forEach(f => document.getElementById(f).value = '');
+        };
+
+        window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
+        window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur });
+        
+        window.setTagFilter = (tag) => { activeTagFilter = tag; updateTagCloud(); renderAll(); };
+        function updateTagCloud() {
+            const tags = [...new Set(allIdeas.map(i => i.tag).filter(t => t))];
+            document.getElementById('tag-filters').innerHTML = `<span class="tag-pill ${!activeTagFilter ? 'active' : ''}" onclick="window.setTagFilter(null)">Todas</span>` + tags.map(t => `<span class="tag-pill ${activeTagFilter === t ? 'active' : ''}" onclick="window.setTagFilter('${t}')">${t}</span>`).join('');
+        }
+        function showToast(m) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 2500); }
+        
+        window.openFocus = id => {
+            const i = allIdeas.find(x => x.id === id);
+            if(!i) return;
+            const valDisplay = i.value ? `R$ ${parseFloat(i.value).toLocaleString('pt-BR')}` : 'Não definido';
+            
+            document.getElementById('focus-content').innerHTML = `
+                <input type="hidden" id="current-focus-id" value="${i.id}">
+                <span onclick="window.closeFocus()" style="position:absolute; top:20px; right:20px; cursor:pointer; font-size:1.5rem;">×</span>
+                <p style="color:var(--primary); font-size:0.6rem; font-weight:900; letter-spacing:1px;">DOCUMENTO ESTRATÉGICO</p>
+                <h2 style="margin:10px 0 5px;">${i.title}</h2>
+                <p style="margin:0 0 15px 0; color:var(--success); font-weight:800;">Valor Estimado: ${valDisplay}</p>
+                <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; font-size:0.95rem; line-height:1.6; white-space:pre-wrap;">${i.desc || 'Sem notas detalhadas.'}</div>
+                
+                <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                    ${i.link ? `<a href="${i.link}" target="_blank" style="background:rgba(99,102,241,0.1); color:var(--primary); padding:8px 15px; border-radius:8px; text-decoration:none; font-weight:700; font-size:0.8rem;">🔗 Link Externo</a>` : ''}
+                    <button class="btn-gpj" style="font-size:0.7rem; padding:8px 15px; width:auto;" onclick="window.exportPDF('${i.id}')">📄 Gerar PDF</button>
+                </div>
+                <div style="margin-top:25px; border-top:1px solid var(--border); padding-top:20px;">
+                    <h4 style="margin:0 0 10px 0; font-size:0.7rem; letter-spacing:1px; color:var(--text-muted); text-transform:uppercase;">Plano de Execução</h4>
+                    <div id="check-items-list">
+                        ${(i.checklist || []).map((t, idx) => `
+                            <div class="check-item">
+                                <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
+                                <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
+                                <span onclick="window.removeTask('${i.id}', ${idx})" style="cursor:pointer; opacity:0.3; font-size:0.8rem;">🗑️</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="new-task" placeholder="Adicionar nova tarefa..." style="flex:1; padding:8px;">
+                        <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto; padding:8px 15px;">+</button>
+                    </div>
                 </div>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
@@ -272,80 +504,26 @@
             const i = allIdeas.find(x => x.id === id);
             const newList = [...(i.checklist || []), { text, done: false }];
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            window.openFocus(id);
         };
-
         window.toggleTask = async (id, idx) => {
             const i = allIdeas.find(x => x.id === id);
             const newList = [...i.checklist];
             newList[idx].done = !newList[idx].done;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            window.openFocus(id);
         };
-
-        document.getElementById('btn-save').onclick = async () => {
-            const id = document.getElementById('edit-id').value;
-            const data = {
-                uid: auth.currentUser.uid,
-                title: document.getElementById('idea-title').value,
-                desc: document.getElementById('idea-desc').value,
-                tag: document.getElementById('idea-tag').value,
-                value: document.getElementById('idea-val').value || 0,
-                status: document.getElementById('idea-status').value,
-                prio: document.getElementById('idea-prio').value,
-                deadline: document.getElementById('idea-deadline').value,
-                updatedAt: Date.now()
-            };
-            if(!data.title) return;
-            if(id) await updateDoc(doc(db, "ideas", id), data);
-            else await addDoc(collection(db, "ideas"), { ...data, checklist: [], createdAt: Date.now() });
-            
-            document.getElementById('edit-id').value = "";
-            ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline'].forEach(f => document.getElementById(f).value = '');
-        };
-
-        window.editIdea = (id) => {
+        window.removeTask = async (id, idx) => {
             const i = allIdeas.find(x => x.id === id);
-            document.getElementById('edit-id').value = i.id;
-            document.getElementById('idea-title').value = i.title;
-            document.getElementById('idea-desc').value = i.desc;
-            document.getElementById('idea-tag').value = i.tag;
-            document.getElementById('idea-val').value = i.value;
-            window.closeFocus();
+            const newList = i.checklist.filter((_, index) => index !== idx);
+            await updateDoc(doc(db, "ideas", id), { checklist: newList });
         };
-
-        function updateCounts() {
-            document.getElementById('count-pendente').innerText = allIdeas.filter(i => i.status === 'pendente').length;
-            document.getElementById('count-andamento').innerText = allIdeas.filter(i => i.status === 'andamento').length;
-            document.getElementById('count-concluida').innerText = allIdeas.filter(i => i.status === 'concluida').length;
-        }
-
-        function updateDashboard() {
-            const total = allIdeas.reduce((acc, i) => acc + parseFloat(i.value||0), 0);
-            document.getElementById('dash-total-money').innerText = `R$ ${total.toLocaleString('pt-BR')}`;
-            if(financeChart) financeChart.destroy();
-            const ctx = document.getElementById('financeChart').getContext('2d');
-            const vals = ['pendente', 'andamento', 'concluida'].map(s => allIdeas.filter(i => i.status === s).reduce((acc, i) => acc + parseFloat(i.value||0), 0));
-            financeChart = new Chart(ctx, { type: 'bar', data: { labels: ['Pend', 'Ação', 'ROI'], datasets: [{ label: 'Distribuição R$', data: vals, backgroundColor: '#6366f1' }] } });
-        }
-
-        window.deleteIdea = async (id) => { if(confirm("Confirmar exclusão?")) await deleteDoc(doc(db, "ideas", id)); };
-        window.closeFocus = () => document.getElementById('focus-modal').style.display = 'none';
-
-        document.getElementById('tab-list-btn').onclick = () => switchTab('list-view', 'tab-list-btn');
-        document.getElementById('tab-kanban-btn').onclick = () => switchTab('kanban-view', 'tab-kanban-btn');
-        document.getElementById('tab-dash-btn').onclick = () => switchTab('dash-view', 'tab-dash-btn');
-
-        function switchTab(viewId, btnId) {
-            ['list-view', 'kanban-view', 'dash-view'].forEach(v => document.getElementById(v).style.display = v === viewId ? (v === 'kanban-view' ? 'grid' : 'block') : 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === btnId));
-        }
-
+        window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; };
+        
         window.exportPDF = (id) => {
             const i = allIdeas.find(x => x.id === id);
-            const docPdf = new jspdf.jsPDF();
-            docPdf.setFontSize(20); docPdf.text("RELATÓRIO DE INSIGHT - IDEAFlow", 10, 20);
-            docPdf.setFontSize(12); docPdf.text(`Projeto: ${i.title}`, 10, 35);
+            const { jsPDF } = window.jspdf;
+            const docPdf = new jsPDF();
+            docPdf.setFontSize(20); docPdf.text("GPJ ENTERPRISES", 10, 20);
+            docPdf.setFontSize(14); docPdf.text(`Projeto: ${i.title}`, 10, 35);
             docPdf.text(`Valor: R$ ${i.value || 0}`, 10, 45);
             docPdf.text(`Status: ${i.status} | Prazo: ${i.deadline || 'N/A'}`, 10, 55);
             docPdf.setFontSize(12);
