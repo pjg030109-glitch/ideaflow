@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.2 | GPJ Dashboard Edition</title>
+    <title>IdeaFlow Pro v3.3 | GPJ AI Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -39,6 +39,10 @@
         input, select, textarea { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; transition: 0.2s; flex: 1; min-width: 100px; }
         input:focus, textarea:focus { outline: none; border-color: var(--primary); }
         textarea { min-height: 80px; resize: vertical; width: 100%; box-sizing: border-box; }
+
+        /* Estilo da Sugestão de IA */
+        .ai-suggestion { font-size: 0.65rem; color: var(--primary); font-weight: 800; margin-top: -5px; margin-bottom: 5px; display: none; cursor: pointer; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .view-tabs { display: flex; background: rgba(0,0,0,0.05); padding: 5px; border-radius: 12px; margin-bottom: 5px; }
         .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); background: transparent; transition: 0.3s; }
@@ -135,6 +139,9 @@
                 <input type="hidden" id="edit-id">
                 <input type="text" id="idea-title" placeholder="Título do Insight Principal">
                 <textarea id="idea-desc" placeholder="Notas estratégicas..."></textarea>
+                
+                <div id="ai-tag-suggestion" class="ai-suggestion" onclick="window.applyAiTag()">✨ Sugestão de IA: <span id="ai-tag-name"></span> (clique para aplicar)</div>
+
                 <input type="url" id="idea-link" placeholder="Link de Referência">
                 
                 <div class="row-group">
@@ -236,7 +243,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ATIVAÇÃO DE PERSISTÊNCIA OFFLINE
         enableIndexedDbPersistence(db).catch((err) => {
             if (err.code == 'failed-precondition') console.log("Persistência falhou: Múltiplas abas abertas.");
             else if (err.code == 'unimplemented') console.log("O navegador não suporta persistência.");
@@ -246,6 +252,45 @@
         let activeTagFilter = null;
         let financeChart = null;
         let statusChart = null;
+
+        // NOVO: Lógica de Smart Tags AI
+        const aiKeywords = {
+            'Marketing': ['vendas', 'anuncio', 'campanha', 'social', 'instagram', 'cliente', 'marca', 'publico'],
+            'Financeiro': ['dinheiro', 'investimento', 'custo', 'lucro', 'pagamento', 'caixa', 'banco', 'faturamento'],
+            'Desenvolvimento': ['app', 'site', 'codigo', 'software', 'api', 'bug', 'deploy', 'tecnologia'],
+            'Operacional': ['processo', 'equipe', 'logistica', 'estoque', 'entrega', 'tarefa', 'escritorio'],
+            'Estratégia': ['plano', 'visao', 'futuro', 'concorrente', 'parceria', 'expansao', 'meta']
+        };
+
+        function detectSmartTag() {
+            const text = (document.getElementById('idea-title').value + " " + document.getElementById('idea-desc').value).toLowerCase();
+            const suggestionBox = document.getElementById('ai-tag-suggestion');
+            const suggestionName = document.getElementById('ai-tag-name');
+            
+            let bestTag = null;
+            for (const [tag, keywords] of Object.entries(aiKeywords)) {
+                if (keywords.some(k => text.includes(k))) {
+                    bestTag = tag;
+                    break;
+                }
+            }
+
+            if (bestTag && document.getElementById('idea-tag').value === "") {
+                suggestionName.innerText = bestTag;
+                suggestionBox.style.display = 'block';
+            } else {
+                suggestionBox.style.display = 'none';
+            }
+        }
+
+        window.applyAiTag = () => {
+            const tag = document.getElementById('ai-tag-name').innerText;
+            document.getElementById('idea-tag').value = tag;
+            document.getElementById('ai-tag-suggestion').style.display = 'none';
+        };
+
+        document.getElementById('idea-title').addEventListener('input', detectSmartTag);
+        document.getElementById('idea-desc').addEventListener('input', detectSmartTag);
 
         window.resetPassword = () => {
             const email = document.getElementById('login-email').value;
@@ -326,7 +371,6 @@
                 }
             });
 
-            // NOVO: Cálculo de Eficiência
             const totalIdeas = allIdeas.length;
             const efficiency = totalIdeas > 0 ? Math.round((counts.concluida / totalIdeas) * 100) : 0;
             const effEl = document.getElementById('dash-efficiency-index');
@@ -511,6 +555,7 @@
                 showToast("Insight gravado!");
             }
             ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline','idea-link'].forEach(f => document.getElementById(f).value = '');
+            document.getElementById('ai-tag-suggestion').style.display = 'none';
         };
 
         window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
@@ -612,10 +657,7 @@
             const agreed = document.getElementById('agree-terms').checked;
 
             if(!email || !pass) return alert("Preencha todos os campos.");
-            
-            if(!agreed) {
-                return alert("Você precisa aceitar os Termos de Uso e a Política de Privacidade da GPJ Enterprises para criar sua conta.");
-            }
+            if(!agreed) return alert("Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar sua conta.");
 
             createUserWithEmailAndPassword(auth, email, pass)
                 .then((u) => {
