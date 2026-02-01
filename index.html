@@ -47,7 +47,6 @@
         .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); background: transparent; transition: 0.3s; }
         .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
 
-        /* Estilo dos Filtros de Prazo */
         .deadline-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
         .deadline-btn { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .deadline-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -75,6 +74,10 @@
         .tag-pill { font-size: 0.65rem; padding: 5px 12px; border-radius: 20px; background: rgba(99, 102, 241, 0.1); color: var(--primary); cursor: pointer; font-weight: 700; border: 1px solid transparent; }
         .tag-pill.active { background: var(--primary); color: white; }
         .value-badge { color: var(--success); font-weight: 800; font-size: 0.8rem; margin-left: 8px; }
+
+        /* NOVO: Estilos da Barra de Progresso */
+        .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 8px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); transition: width 0.4s ease; width: 0%; }
 
         .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px; transition: 0.2s; }
         .check-item:hover { background: var(--card-bg); }
@@ -265,7 +268,7 @@
 
         let allIdeas = [];
         let activeTagFilter = null;
-        let activeDeadlineFilter = 'all'; // NOVO: Estado do filtro de prazo
+        let activeDeadlineFilter = 'all'; 
         let financeChart = null;
         let statusChart = null;
 
@@ -299,7 +302,6 @@
             document.getElementById('ai-tag-suggestion').style.display = 'none';
         };
 
-        // NOVO: Função de Filtro de Prazo
         window.setDeadlineFilter = (mode) => {
             activeDeadlineFilter = mode;
             document.querySelectorAll('.deadline-btn').forEach(btn => btn.classList.remove('active'));
@@ -397,7 +399,6 @@
                 const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
                 const matchTag = !activeTagFilter || i.tag === activeTagFilter;
                 
-                // Lógica de Filtro de Prazo
                 let matchDeadline = true;
                 if(activeDeadlineFilter !== 'all' && i.deadline) {
                     const dlDate = new Date(i.deadline).getTime();
@@ -422,7 +423,6 @@
         function createCardHTML(i) {
             const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
             
-            // NOVO: Cálculo visual de urgência no card
             let dlStyle = "";
             if(i.deadline) {
                 const diff = (new Date(i.deadline).getTime() - new Date().getTime()) / (1000*60*60*24);
@@ -432,11 +432,20 @@
 
             const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block; ${dlStyle}">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
             const valueDisplay = i.value && i.value > 0 ? `<span class="value-badge">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>` : '';
+            
+            // Lógica do Checklist
             const tasksTotal = i.checklist?.length || 0;
             const tasksDone = i.checklist?.filter(t => t.done).length || 0;
             const progressDisplay = tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:800; margin-top:4px;">✅ ${tasksDone}/${tasksTotal} TAREFAS</div>` : '';
+            
+            // NOVO: Cálculo e Elemento da Barra de Progresso
+            const progressPercent = tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0;
+            const progressBarHTML = tasksTotal > 0 ? `
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progressPercent}%"></div>
+                </div>
+            ` : '';
 
-            // MODIFICAÇÃO: Feedback visual no botão de pin
             const pinOpacity = i.pinned ? "1" : "0.3";
 
             return `
@@ -447,6 +456,7 @@
                             <div><span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag || 'Geral'} ${i.pinned ? '📌' : ''}</span>${valueDisplay}</div>
                             <strong style="display:block; margin-top:2px; font-size:1rem;">${i.title}</strong>
                             ${deadlineInfo} ${progressDisplay}
+                            ${progressBarHTML}
                         </div>
                         <div onclick="event.stopPropagation()" style="display:flex; gap:8px; opacity:1;">
                             <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; font-size:1rem; opacity:${pinOpacity}; filter:${i.pinned ? 'none' : 'grayscale(1)'}; transition: 0.2s;">📌</button>
@@ -559,7 +569,6 @@
             document.getElementById('focus-modal').style.display = 'flex';
         };
 
-        // NOVO: Função para exportar PDF
         window.exportToPDF = (id) => {
             const i = allIdeas.find(x => x.id === id);
             if(!i) return;
