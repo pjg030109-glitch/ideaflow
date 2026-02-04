@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.5 | GPJ Time-Horizon</title>
+    <title>IdeaFlow Pro v3.6 | GPJ Time-Horizon</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
         :root {
@@ -90,7 +92,7 @@
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
         .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); font-weight: 600; }
 
-        /* NOVO: Animação de Pulsar para Prioridade Alta + Vencido */
+        /* Animação de Pulsar para Prioridade Alta + Vencido */
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -101,6 +103,11 @@
             animation: pulse-red 2s infinite;
             border-color: var(--danger) !important;
             border-width: 2px !important;
+        }
+
+        /* Estilização Extra para SweetAlert2 em Dark Mode */
+        div:where(.swal2-container) h2:where(.swal2-title), div:where(.swal2-container) div:where(.swal2-html-container) {
+            font-family: 'Inter', sans-serif !important;
         }
 
         @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
@@ -285,6 +292,15 @@
         let financeChart = null;
         let statusChart = null;
 
+        // Função auxiliar para pegar cores corretas do SweetAlert no tema escuro
+        const getSwalColors = () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#f1f5f9' : '#1e293b'
+            };
+        };
+
         const aiKeywords = {
             'Marketing': ['vendas', 'anuncio', 'campanha', 'social', 'instagram', 'cliente', 'marca', 'publico'],
             'Financeiro': ['dinheiro', 'investimento', 'custo', 'lucro', 'pagamento', 'caixa', 'banco', 'faturamento'],
@@ -328,10 +344,12 @@
 
         window.resetPassword = () => {
             const email = document.getElementById('login-email').value;
-            if(!email) return alert("Por favor, digite seu e-mail no campo acima.");
+            const theme = getSwalColors();
+            if(!email) return Swal.fire({ title: 'Atenção', text: "Por favor, digite seu e-mail no campo acima.", icon: 'warning', ...theme });
+            
             sendPasswordResetEmail(auth, email)
-                .then(() => alert("E-mail de redefinição de senha enviado!"))
-                .catch(e => alert("Erro: " + e.message));
+                .then(() => Swal.fire({ title: 'Sucesso', text: "E-mail de redefinição de senha enviado!", icon: 'success', ...theme }))
+                .catch(e => Swal.fire({ title: 'Erro', text: e.message, icon: 'error', ...theme }));
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -342,7 +360,10 @@
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
-                if(user && !user.emailVerified) { alert("Confirme seu e-mail!"); signOut(auth); }
+                if(user && !user.emailVerified) { 
+                    Swal.fire({ title: 'Verificação Necessária', text: "Por favor, confirme seu e-mail para acessar!", icon: 'info', ...getSwalColors() });
+                    signOut(auth); 
+                }
             }
         });
 
@@ -444,7 +465,6 @@
                 if(diff < 1) dlStyle = "color: var(--danger); font-weight: 800; border: 1px solid var(--danger);";
                 else if(diff < 7) dlStyle = "color: var(--warning); font-weight: 800; border: 1px solid var(--warning);";
 
-                // NOVO: Verifica se está vencido (diff < 0) e se é prioridade ALTA
                 if(diff < 0 && i.prio === 'alta') {
                     pulseClass = "critical-overdue";
                 }
@@ -453,12 +473,10 @@
             const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block; ${dlStyle}">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
             const valueDisplay = i.value && i.value > 0 ? `<span class="value-badge">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>` : '';
             
-            // Lógica do Checklist
             const tasksTotal = i.checklist?.length || 0;
             const tasksDone = i.checklist?.filter(t => t.done).length || 0;
             const progressDisplay = tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:800; margin-top:4px;">✅ ${tasksDone}/${tasksTotal} TAREFAS</div>` : '';
             
-            // Cálculo e Elemento da Barra de Progresso
             const progressPercent = tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0;
             const progressBarHTML = tasksTotal > 0 ? `
                 <div class="progress-container">
@@ -549,7 +567,36 @@
             showToast("Insight processado!");
         };
 
-        window.deleteIdea = id => confirm("Remover?") && deleteDoc(doc(db, "ideas", id));
+        // ==========================================
+        //  SUBSTITUIÇÃO DO CONFIRM POR SWEETALERT
+        // ==========================================
+        window.deleteIdea = (id) => {
+            const theme = getSwalColors();
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: "Você não poderá reverter esta ação!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sim, remover!',
+                cancelButtonText: 'Cancelar',
+                background: theme.background,
+                color: theme.color
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteDoc(doc(db, "ideas", id));
+                    Swal.fire({
+                        title: 'Removido!',
+                        text: 'O insight foi deletado.',
+                        icon: 'success',
+                        background: theme.background,
+                        color: theme.color
+                    });
+                }
+            })
+        };
+
         window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur });
         
         window.setTagFilter = (tag) => { activeTagFilter = tag; updateTagCloud(); renderAll(); };
@@ -644,18 +691,20 @@
 
         document.getElementById('btn-login').onclick = () => {
             signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                .catch(e => alert("Erro no login."));
+                .catch(e => Swal.fire({ title: 'Acesso Negado', text: "Erro no login. Verifique suas credenciais.", icon: 'error', ...getSwalColors() }));
         };
 
         document.getElementById('btn-signup').onclick = () => {
             const email = document.getElementById('login-email').value;
             const pass = document.getElementById('login-pass').value;
-            if(!document.getElementById('agree-terms').checked) return alert("Aceite os termos.");
+            const theme = getSwalColors();
+            if(!document.getElementById('agree-terms').checked) return Swal.fire({ title: 'Atenção', text: "Você precisa aceitar os termos de uso.", icon: 'warning', ...theme });
+            
             createUserWithEmailAndPassword(auth, email, pass).then((u) => {
                 sendEmailVerification(u.user);
-                alert("Verifique seu e-mail!");
+                Swal.fire({ title: 'Conta Criada!', text: "Verifique seu e-mail para ativar a conta.", icon: 'success', ...theme });
                 signOut(auth);
-            }).catch(e => alert(e.message));
+            }).catch(e => Swal.fire({ title: 'Erro no Cadastro', text: e.message, icon: 'error', ...theme }));
         };
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
