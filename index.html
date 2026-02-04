@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.4 | GPJ Time-Horizon</title>
+    <title>IdeaFlow Pro v3.5 | GPJ Time-Horizon</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -75,7 +75,7 @@
         .tag-pill.active { background: var(--primary); color: white; }
         .value-badge { color: var(--success); font-weight: 800; font-size: 0.8rem; margin-left: 8px; }
 
-        /* NOVO: Estilos da Barra de Progresso */
+        /* Estilos da Barra de Progresso */
         .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary); transition: width 0.4s ease; width: 0%; }
 
@@ -89,6 +89,19 @@
 
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
         .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); font-weight: 600; }
+
+        /* NOVO: Animação de Pulsar para Prioridade Alta + Vencido */
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .critical-overdue {
+            animation: pulse-red 2s infinite;
+            border-color: var(--danger) !important;
+            border-width: 2px !important;
+        }
 
         @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
     </style>
@@ -424,10 +437,17 @@
             const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
             
             let dlStyle = "";
+            let pulseClass = "";
+            
             if(i.deadline) {
                 const diff = (new Date(i.deadline).getTime() - new Date().getTime()) / (1000*60*60*24);
                 if(diff < 1) dlStyle = "color: var(--danger); font-weight: 800; border: 1px solid var(--danger);";
                 else if(diff < 7) dlStyle = "color: var(--warning); font-weight: 800; border: 1px solid var(--warning);";
+
+                // NOVO: Verifica se está vencido (diff < 0) e se é prioridade ALTA
+                if(diff < 0 && i.prio === 'alta') {
+                    pulseClass = "critical-overdue";
+                }
             }
 
             const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block; ${dlStyle}">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
@@ -438,7 +458,7 @@
             const tasksDone = i.checklist?.filter(t => t.done).length || 0;
             const progressDisplay = tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:800; margin-top:4px;">✅ ${tasksDone}/${tasksTotal} TAREFAS</div>` : '';
             
-            // NOVO: Cálculo e Elemento da Barra de Progresso
+            // Cálculo e Elemento da Barra de Progresso
             const progressPercent = tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0;
             const progressBarHTML = tasksTotal > 0 ? `
                 <div class="progress-container">
@@ -449,7 +469,7 @@
             const pinOpacity = i.pinned ? "1" : "0.3";
 
             return `
-                <div class="idea-card" draggable="true" data-id="${i.id}" data-status="${i.status}" onclick="window.openFocus('${i.id}')">
+                <div class="idea-card ${pulseClass}" draggable="true" data-id="${i.id}" data-status="${i.status}" onclick="window.openFocus('${i.id}')">
                     <div class="prio-indicator" style="background:${colors[i.prio]}"></div>
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div style="flex:1">
