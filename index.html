@@ -85,6 +85,8 @@
         .check-item:hover { background: var(--card-bg); }
         .check-text { flex: 1; font-size: 0.9rem; color: var(--text); }
         .check-done { text-decoration: line-through; opacity: 0.5; }
+        .btn-remove-task { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: 0.2s; padding: 5px; }
+        .btn-remove-task:hover { opacity: 1; }
 
         .btn-gpj { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
         .btn-gpj:hover { filter: brightness(1.1); transform: translateY(-1px); }
@@ -625,6 +627,7 @@
                         <div class="check-item">
                             <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
                             <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
+                            <button class="btn-remove-task" onclick="window.removeTask('${i.id}', ${idx})">✕</button>
                         </div>
                     `).join('')}
                 </div>
@@ -687,6 +690,13 @@
             newList[idx].done = !newList[idx].done;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
         };
+
+        window.removeTask = async (id, idx) => {
+            const i = allIdeas.find(x => x.id === id);
+            const newList = i.checklist.filter((_, index) => index !== idx);
+            await updateDoc(doc(db, "ideas", id), { checklist: newList });
+        };
+
         window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; };
 
         document.getElementById('btn-login').onclick = () => {
