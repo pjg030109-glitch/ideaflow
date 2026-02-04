@@ -32,5 +32,3 @@ O IdeaFlow permite que você exporte todo o banco de dados da **GPJ** em formato
 
 ---
 © 2026 GPJ Enterprises. Conectando visões ao futuro.
-![i2](https://github.com/user-attachments/assets/b7b4c434-b89b-47a2-9dea-01598be7b80f)
-![i1](https://github.com/user-attachments/assets/3fc54dc3-7b95-45c4-8bbb-f3a5645d4ddb)
