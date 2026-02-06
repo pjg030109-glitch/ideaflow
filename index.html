@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v3.6 | GPJ Time-Horizon</title>
+    <title>IdeaFlow Pro v4.0 | Team Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -81,12 +81,20 @@
         .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary); transition: width 0.4s ease; width: 0%; }
 
-        .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px; transition: 0.2s; }
+        .check-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 8px; transition: 0.2s; flex-wrap: wrap;}
         .check-item:hover { background: var(--card-bg); }
-        .check-text { flex: 1; font-size: 0.9rem; color: var(--text); }
+        .check-text { flex: 1; font-size: 0.9rem; color: var(--text); min-width: 150px; }
         .check-done { text-decoration: line-through; opacity: 0.5; }
         .btn-remove-task { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: 0.2s; padding: 5px; }
         .btn-remove-task:hover { opacity: 1; }
+
+        /* Novos estilos para Select de Atribuição e Histórico */
+        .assignee-select { padding: 5px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.75rem; background: var(--card-bg); color: var(--text); max-width: 120px; }
+        .history-entry { border-left: 2px solid var(--border); padding-left: 15px; margin-bottom: 15px; position: relative; }
+        .history-entry::before { content: ''; position: absolute; left: -5px; top: 5px; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+        .history-date { font-size: 0.65rem; color: var(--text-muted); font-weight: bold; }
+        .history-desc { font-size: 0.8rem; color: var(--text); margin: 2px 0; }
+        .shared-badge { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 2px 6px; border-radius: 4px; font-weight: bold; }
 
         .btn-gpj { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
         .btn-gpj:hover { filter: brightness(1.1); transform: translateY(-1px); }
@@ -120,6 +128,21 @@
     <div id="toast-container"></div>
     <div id="focus-modal" class="overlay" style="display:none;"><div class="modal-card" id="focus-content"></div></div>
 
+    <div id="team-modal" class="overlay" style="display:none;">
+        <div class="modal-card" style="max-width: 400px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0;">Ecossistema & Equipe</h3>
+                <span onclick="document.getElementById('team-modal').style.display='none'" style="cursor:pointer; font-size:1.5rem;">×</span>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-muted);">Adicione e-mails de membros. Eles poderão ver e editar os insights compartilhados.</p>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="email" id="new-member-email" placeholder="email@colega.com">
+                <button onclick="window.addTeamMember()" class="btn-gpj" style="width:auto; padding: 12px;">+</button>
+            </div>
+            <div id="team-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+    </div>
+
     <div id="auth-container" class="overlay">
         <div class="modal-card" style="max-width:380px; text-align:center;">
             <div style="background: var(--primary); width: 60px; height: 60px; border-radius: 15px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 900;">IF</div>
@@ -152,6 +175,8 @@
                 </div>
                 <button onclick="window.toggleTheme()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🌙</button>
             </div>
+
+            <button onclick="window.openTeamModal()" style="background:rgba(99, 102, 241, 0.1); color:var(--primary); border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.8rem;">👥 Gerenciar Ecossistema</button>
 
             <div class="stats-grid">
                 <div class="stat-item"><span class="stat-val" id="count-pendente">0</span><span class="stat-label">Pend</span></div>
@@ -268,7 +293,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDnXmurBXWauvg7hlxShOaZ4JIrtdpB3bo",
@@ -288,13 +313,15 @@
             else if (err.code == 'unimplemented') console.log("O navegador não suporta persistência.");
         });
 
-        let allIdeas = [];
+        let myIdeas = [];
+        let sharedIdeas = [];
         let activeTagFilter = null;
         let activeDeadlineFilter = 'all'; 
         let financeChart = null;
         let statusChart = null;
+        let currentUserEmail = null;
+        let teamMembers = []; // Cache dos membros da equipe do usuário atual
 
-        // Função auxiliar para pegar cores corretas do SweetAlert no tema escuro
         const getSwalColors = () => {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             return {
@@ -356,9 +383,11 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user && user.emailVerified) {
+                currentUserEmail = user.email;
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
-                syncData(user.uid);
+                fetchTeam(user.uid);
+                syncData(user.uid, user.email);
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -369,16 +398,75 @@
             }
         });
 
-        function syncData(uid) {
-            const q = query(collection(db, "ideas"), where("uid", "==", uid));
-            onSnapshot(q, (snapshot) => {
-                allIdeas = [];
-                snapshot.forEach(doc => allIdeas.push({id: doc.id, ...doc.data()}));
-                updateTagCloud();
-                updateStats();
-                renderAll();
-                updateDashboard();
+        // Gestão de Equipe (Ecossistema)
+        async function fetchTeam(uid) {
+            onSnapshot(doc(db, "teams", uid), (docSnap) => {
+                if (docSnap.exists()) {
+                    teamMembers = docSnap.data().members || [];
+                    renderTeamList();
+                } else {
+                    teamMembers = [];
+                }
             });
+        }
+
+        window.openTeamModal = () => { document.getElementById('team-modal').style.display = 'flex'; };
+        
+        window.addTeamMember = async () => {
+            const email = document.getElementById('new-member-email').value;
+            if(!email) return;
+            const newMembers = [...teamMembers, email];
+            await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+            document.getElementById('new-member-email').value = '';
+            showToast("Membro convidado!");
+        };
+
+        window.removeTeamMember = async (email) => {
+            const newMembers = teamMembers.filter(m => m !== email);
+            await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+        };
+
+        function renderTeamList() {
+            const html = teamMembers.map(email => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.05); padding:8px; border-radius:5px; font-size:0.8rem;">
+                    <span>${email}</span>
+                    <button onclick="window.removeTeamMember('${email}')" style="border:none; background:none; color:var(--danger); cursor:pointer;">✕</button>
+                </div>
+            `).join('');
+            document.getElementById('team-list').innerHTML = html || '<span style="color:var(--text-muted); font-size:0.7rem;">Nenhum membro adicionado.</span>';
+        }
+
+        // Sincronização de Dados (Meus + Compartilhados)
+        function syncData(uid, email) {
+            // Meus Insights
+            const qMy = query(collection(db, "ideas"), where("uid", "==", uid));
+            onSnapshot(qMy, (snapshot) => {
+                myIdeas = [];
+                snapshot.forEach(doc => myIdeas.push({id: doc.id, ...doc.data(), isShared: false}));
+                combineAndRender();
+            });
+
+            // Insights Compartilhados Comigo
+            const qShared = query(collection(db, "ideas"), where("collaborators", "array-contains", email));
+            onSnapshot(qShared, (snapshot) => {
+                sharedIdeas = [];
+                snapshot.forEach(doc => sharedIdeas.push({id: doc.id, ...doc.data(), isShared: true}));
+                combineAndRender();
+            });
+        }
+
+        function combineAndRender() {
+            // Combina e remove duplicatas (caso haja sobreposição estranha, embora as queries sejam distintas)
+            const all = [...myIdeas, ...sharedIdeas];
+            // Filtro de unicidade por ID
+            const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
+            
+            // Renderização
+            window.renderedIdeas = unique; // Salva globalmente para acesso fácil
+            updateTagCloud(unique);
+            updateStats(unique);
+            renderAll(unique);
+            updateDashboard(unique);
         }
 
         function switchTab(tab) {
@@ -386,29 +474,30 @@
             document.querySelectorAll('#list-view-container, #kanban-view-container, #dashboard-view-container').forEach(c => c.style.display = 'none');
             if(tab === 'list') { document.getElementById('tab-list-btn').classList.add('active'); document.getElementById('list-view-container').style.display = 'block'; }
             else if(tab === 'kanban') { document.getElementById('tab-kanban-btn').classList.add('active'); document.getElementById('kanban-view-container').style.display = 'grid'; }
-            else if(tab === 'dash') { document.getElementById('tab-dash-btn').classList.add('active'); document.getElementById('dashboard-view-container').style.display = 'block'; updateDashboard(); }
+            else if(tab === 'dash') { document.getElementById('tab-dash-btn').classList.add('active'); document.getElementById('dashboard-view-container').style.display = 'block'; updateDashboard(window.renderedIdeas); }
         }
         document.getElementById('tab-list-btn').onclick = () => switchTab('list');
         document.getElementById('tab-kanban-btn').onclick = () => switchTab('kanban');
         document.getElementById('tab-dash-btn').onclick = () => switchTab('dash');
 
-        function updateStats() {
+        function updateStats(ideas) {
             const stats = { pendente: 0, andamento: 0, concluida: 0 };
-            allIdeas.forEach(i => { if(stats[i.status] !== undefined) stats[i.status]++; });
+            ideas.forEach(i => { if(stats[i.status] !== undefined) stats[i.status]++; });
             document.getElementById('count-pendente').innerText = stats.pendente;
             document.getElementById('count-andamento').innerText = stats.andamento;
             document.getElementById('count-concluida').innerText = stats.concluida;
         }
 
-        function updateDashboard() {
+        function updateDashboard(ideas) {
+            if(!ideas) return;
             const vals = { pendente: 0, andamento: 0, concluida: 0 };
             const counts = { pendente: 0, andamento: 0, concluida: 0 };
             let totalMoney = 0;
-            allIdeas.forEach(i => {
+            ideas.forEach(i => {
                 const val = parseFloat(i.value) || 0;
                 if(vals[i.status] !== undefined) { vals[i.status] += val; counts[i.status]++; totalMoney += val; }
             });
-            const totalIdeas = allIdeas.length;
+            const totalIdeas = ideas.length;
             const efficiency = totalIdeas > 0 ? Math.round((counts.concluida / totalIdeas) * 100) : 0;
             document.getElementById('dash-efficiency-index').innerText = `${efficiency}%`;
             
@@ -427,11 +516,12 @@
             statusChart = new Chart(ctxStat, { type: 'doughnut', data: { labels: ['Pend', 'And', 'Conc'], datasets: [{ data: [counts.pendente, counts.andamento, counts.concluida], backgroundColor: ['#64748b', '#f59e0b', '#10b981'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {position: 'bottom'} } } });
         }
 
-        function renderAll() {
+        function renderAll(ideas) {
+            if(!ideas) ideas = window.renderedIdeas || [];
             const term = document.getElementById('search-input').value.toLowerCase();
             const now = new Date().getTime();
 
-            let filtered = allIdeas.filter(i => {
+            let filtered = ideas.filter(i => {
                 const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
                 const matchTag = !activeTagFilter || i.tag === activeTagFilter;
                 
@@ -487,10 +577,12 @@
             ` : '';
 
             const pinOpacity = i.pinned ? "1" : "0.3";
+            const sharedBadge = i.isShared ? `<span class="shared-badge">COMPARTILHADO</span>` : '';
 
             return `
                 <div class="idea-card ${pulseClass}" draggable="true" data-id="${i.id}" data-status="${i.status}" onclick="window.openFocus('${i.id}')">
                     <div class="prio-indicator" style="background:${colors[i.prio]}"></div>
+                    ${sharedBadge}
                     <div style="display:flex; justify-content:space-between; align-items:start;">
                         <div style="flex:1">
                             <div><span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag || 'Geral'} ${i.pinned ? '📌' : ''}</span>${valueDisplay}</div>
@@ -508,6 +600,18 @@
             `;
         }
 
+        // Função para logar histórico
+        const logHistory = async (ideaId, msg) => {
+            const i = window.renderedIdeas.find(x => x.id === ideaId);
+            const historyEntry = {
+                timestamp: Date.now(),
+                user: currentUserEmail,
+                text: msg
+            };
+            const newHistory = [historyEntry, ...(i.history || [])];
+            await updateDoc(doc(db, "ideas", ideaId), { history: newHistory });
+        };
+
         function setupDragAndDrop() {
             const cards = document.querySelectorAll('.idea-card');
             const columns = document.querySelectorAll('.kanban-column');
@@ -524,14 +628,18 @@
                     const card = document.querySelector('.dragging');
                     if(!card) return;
                     const id = card.dataset.id;
+                    const oldStatus = card.dataset.status;
                     const newStatus = column.dataset.status;
-                    if (id) await updateDoc(doc(db, "ideas", id), { status: newStatus, updatedAt: Date.now() });
+                    if (id && oldStatus !== newStatus) {
+                        await updateDoc(doc(db, "ideas", id), { status: newStatus, updatedAt: Date.now() });
+                        logHistory(id, `Moveu de "${oldStatus.toUpperCase()}" para "${newStatus.toUpperCase()}"`);
+                    }
                 });
             });
         }
 
         window.editIdea = (id) => {
-            const i = allIdeas.find(x => x.id === id);
+            const i = window.renderedIdeas.find(x => x.id === id);
             if(!i) return;
             document.getElementById('edit-id').value = i.id;
             document.getElementById('idea-title').value = i.title;
@@ -549,7 +657,6 @@
         document.getElementById('btn-save').onclick = async () => {
             const id = document.getElementById('edit-id').value;
             const data = {
-                uid: auth.currentUser.uid,
                 title: document.getElementById('idea-title').value,
                 desc: document.getElementById('idea-desc').value,
                 link: document.getElementById('idea-link').value,
@@ -561,17 +668,31 @@
                 updatedAt: Date.now()
             };
             if(!data.title) return;
-            if(id) await updateDoc(doc(db, "ideas", id), data);
-            else await addDoc(collection(db, "ideas"), { ...data, pinned: false, checklist: [], createdAt: Date.now() });
+            
+            if(id) {
+                const oldIdea = window.renderedIdeas.find(x => x.id === id);
+                await updateDoc(doc(db, "ideas", id), data);
+                if(oldIdea.status !== data.status) logHistory(id, `Alterou status para "${data.status.toUpperCase()}" via edição`);
+                else logHistory(id, `Editou detalhes do insight`);
+            } else {
+                // Ao criar, adicionamos os colaboradores do time atual
+                await addDoc(collection(db, "ideas"), { 
+                    ...data, 
+                    uid: auth.currentUser.uid,
+                    pinned: false, 
+                    checklist: [], 
+                    history: [],
+                    collaborators: teamMembers, // Compartilha automaticamente
+                    createdAt: Date.now() 
+                });
+            }
+
             ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline','idea-link'].forEach(f => document.getElementById(f).value = '');
             document.getElementById('edit-id').value = "";
             document.getElementById('btn-save').innerText = "Lançar no Ecossistema";
             showToast("Insight processado!");
         };
 
-        // ==========================================
-        //  SUBSTITUIÇÃO DO CONFIRM POR SWEETALERT
-        // ==========================================
         window.deleteIdea = (id) => {
             const theme = getSwalColors();
             Swal.fire({
@@ -588,29 +709,37 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     deleteDoc(doc(db, "ideas", id));
-                    Swal.fire({
-                        title: 'Removido!',
-                        text: 'O insight foi deletado.',
-                        icon: 'success',
-                        background: theme.background,
-                        color: theme.color
-                    });
+                    Swal.fire({ title: 'Removido!', text: 'O insight foi deletado.', icon: 'success', background: theme.background, color: theme.color });
                 }
             })
         };
 
         window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur });
         
-        window.setTagFilter = (tag) => { activeTagFilter = tag; updateTagCloud(); renderAll(); };
-        function updateTagCloud() {
-            const tags = [...new Set(allIdeas.map(i => i.tag).filter(t => t))];
+        window.setTagFilter = (tag) => { activeTagFilter = tag; updateTagCloud(window.renderedIdeas); renderAll(window.renderedIdeas); };
+        function updateTagCloud(ideas) {
+            if(!ideas) return;
+            const tags = [...new Set(ideas.map(i => i.tag).filter(t => t))];
             document.getElementById('tag-filters').innerHTML = `<span class="tag-pill ${!activeTagFilter ? 'active' : ''}" onclick="window.setTagFilter(null)">Todas</span>` + tags.map(t => `<span class="tag-pill ${activeTagFilter === t ? 'active' : ''}" onclick="window.setTagFilter('${t}')">${t}</span>`).join('');
         }
         function showToast(m) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 2500); }
         
+        // Modal de Foco expandida com Histórico e Atribuição
         window.openFocus = id => {
-            const i = allIdeas.find(x => x.id === id);
+            const i = window.renderedIdeas.find(x => x.id === id);
             if(!i) return;
+
+            // Gera options do select de assign com a lista da equipe + user atual
+            const allPossibleAssignees = [i.uid, ...(i.collaborators || [])]; 
+            // Como temos apenas e-mails no array collaborators, e UID no owner, vamos simplificar usando o currentUserEmail como base de "Eu"
+            // Para ser robusto, ideal seria ter mapa UID -> Email, mas usaremos emails diretos onde possivel.
+            const uniqueEmails = [...new Set([currentUserEmail, ...(teamMembers || [])])];
+            
+            const assigneeOptions = (currentAssignee) => `
+                <option value="">Não atribuído</option>
+                ${uniqueEmails.map(e => `<option value="${e}" ${currentAssignee === e ? 'selected' : ''}>${e}</option>`).join('')}
+            `;
+
             document.getElementById('focus-content').innerHTML = `
                 <input type="hidden" id="current-focus-id" value="${i.id}">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -622,25 +751,40 @@
                 </div>
                 <h2 style="margin:0 0 15px 0;">${i.title}</h2>
                 <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; white-space:pre-wrap; margin-bottom:20px;">${i.desc || 'Sem notas.'}</div>
-                <div id="check-items-list" style="margin-top:20px;">
+                
+                <h3 style="font-size:0.9rem; color:var(--text-muted);">Checklist & Atribuições</h3>
+                <div id="check-items-list">
                     ${(i.checklist || []).map((t, idx) => `
                         <div class="check-item">
                             <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
                             <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
+                            <select onchange="window.assignTask('${i.id}', ${idx}, this.value)" class="assignee-select">
+                                ${assigneeOptions(t.assignee)}
+                            </select>
                             <button class="btn-remove-task" onclick="window.removeTask('${i.id}', ${idx})">✕</button>
                         </div>
                     `).join('')}
                 </div>
-                <div style="display:flex; gap:5px; margin-top:10px;">
+                <div style="display:flex; gap:5px; margin-top:10px; margin-bottom:30px;">
                     <input type="text" id="new-task" placeholder="Nova tarefa..." style="flex:1;">
                     <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto;">+</button>
+                </div>
+
+                <h3 style="font-size:0.9rem; color:var(--text-muted); border-top:1px solid var(--border); padding-top:15px;">Histórico de Atividades</h3>
+                <div style="max-height:150px; overflow-y:auto;">
+                    ${(i.history || []).map(h => `
+                        <div class="history-entry">
+                            <div class="history-date">${new Date(h.timestamp).toLocaleString('pt-BR')} - ${h.user}</div>
+                            <div class="history-desc">${h.text}</div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
         };
 
         window.exportToPDF = (id) => {
-            const i = allIdeas.find(x => x.id === id);
+            const i = window.renderedIdeas.find(x => x.id === id);
             if(!i) return;
             const { jsPDF } = window.jspdf;
             const docPdf = new jsPDF();
@@ -652,23 +796,22 @@
             docPdf.setFontSize(12);
             docPdf.text(`Título: ${i.title}`, 20, 35);
             docPdf.text(`Status: ${i.status.toUpperCase()}`, 20, 42);
-            docPdf.text(`Prioridade: ${i.prio.toUpperCase()}`, 20, 49);
-            if(i.value) docPdf.text(`Valor Estimado: R$ ${i.value}`, 20, 56);
             
             docPdf.setFont("helvetica", "normal");
-            docPdf.text("Descrição:", 20, 70);
+            docPdf.text("Descrição:", 20, 60);
             const splitDesc = docPdf.splitTextToSize(i.desc || "Sem descrição.", 170);
-            docPdf.text(splitDesc, 20, 77);
+            docPdf.text(splitDesc, 20, 67);
             
-            let y = 77 + (splitDesc.length * 7) + 10;
+            let y = 67 + (splitDesc.length * 7) + 10;
             if(i.checklist && i.checklist.length > 0) {
                 docPdf.setFont("helvetica", "bold");
                 docPdf.text("Checklist de Execução:", 20, y);
-                y += 7;
+                y += 10;
                 docPdf.setFont("helvetica", "normal");
                 i.checklist.forEach(t => {
                     const status = t.done ? "[X]" : "[ ]";
-                    docPdf.text(`${status} ${t.text}`, 25, y);
+                    const assignee = t.assignee ? `(Resp: ${t.assignee})` : '';
+                    docPdf.text(`${status} ${t.text} ${assignee}`, 25, y);
                     y += 7;
                 });
             }
@@ -680,21 +823,36 @@
         window.addTask = async (id) => {
             const text = document.getElementById('new-task').value;
             if(!text) return;
-            const i = allIdeas.find(x => x.id === id);
-            const newList = [...(i.checklist || []), { text, done: false }];
+            const i = window.renderedIdeas.find(x => x.id === id);
+            // Default assignee: quem criou a tarefa
+            const newList = [...(i.checklist || []), { text, done: false, assignee: currentUserEmail }];
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
+            logHistory(id, `Adicionou tarefa: "${text}"`);
         };
+
         window.toggleTask = async (id, idx) => {
-            const i = allIdeas.find(x => x.id === id);
+            const i = window.renderedIdeas.find(x => x.id === id);
             const newList = [...i.checklist];
             newList[idx].done = !newList[idx].done;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
         };
 
+        window.assignTask = async (id, idx, email) => {
+            const i = window.renderedIdeas.find(x => x.id === id);
+            const newList = [...i.checklist];
+            newList[idx].assignee = email;
+            await updateDoc(doc(db, "ideas", id), { checklist: newList });
+            // Reabrir modal para atualizar UI não é ideal mas garante consistência rápida
+            // O listener já vai atualizar, mas a modal precisa de refresh manual ou re-render.
+            // Aqui, deixamos o listener atualizar o array, e se o user fechar e abrir vê o novo estado.
+        };
+
         window.removeTask = async (id, idx) => {
-            const i = allIdeas.find(x => x.id === id);
+            const i = window.renderedIdeas.find(x => x.id === id);
+            const taskTxt = i.checklist[idx].text;
             const newList = i.checklist.filter((_, index) => index !== idx);
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
+            logHistory(id, `Removeu tarefa: "${taskTxt}"`);
         };
 
         window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; };
@@ -719,7 +877,7 @@
 
         document.getElementById('btn-logout').onclick = () => signOut(auth);
         window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); };
-        document.getElementById('search-input').onkeyup = renderAll;
+        document.getElementById('search-input').onkeyup = () => renderAll(window.renderedIdeas);
     </script>
 </body>
 </html>
