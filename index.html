@@ -6,7 +6,6 @@
     <title>IdeaFlow Pro v4.0 | Team Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
@@ -77,7 +76,6 @@
         .tag-pill.active { background: var(--primary); color: white; }
         .value-badge { color: var(--success); font-weight: 800; font-size: 0.8rem; margin-left: 8px; }
 
-        /* Estilos da Barra de Progresso */
         .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary); transition: width 0.4s ease; width: 0%; }
 
@@ -88,7 +86,6 @@
         .btn-remove-task { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: 0.2s; padding: 5px; }
         .btn-remove-task:hover { opacity: 1; }
 
-        /* Novos estilos para Select de Atribuição e Histórico */
         .assignee-select { padding: 5px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.75rem; background: var(--card-bg); color: var(--text); max-width: 120px; }
         .history-entry { border-left: 2px solid var(--border); padding-left: 15px; margin-bottom: 15px; position: relative; }
         .history-entry::before { content: ''; position: absolute; left: -5px; top: 5px; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
@@ -102,7 +99,6 @@
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
         .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); font-weight: 600; }
 
-        /* Animação de Pulsar para Prioridade Alta + Vencido */
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -113,11 +109,6 @@
             animation: pulse-red 2s infinite;
             border-color: var(--danger) !important;
             border-width: 2px !important;
-        }
-
-        /* Estilização Extra para SweetAlert2 em Dark Mode */
-        div:where(.swal2-container) h2:where(.swal2-title), div:where(.swal2-container) div:where(.swal2-html-container) {
-            font-family: 'Inter', sans-serif !important;
         }
 
         @media (max-width: 900px) { #main-app { flex-direction: column; } .sidebar { width: 100%; height: auto; position: static; } .kanban-container { grid-template-columns: 1fr; } }
@@ -156,8 +147,8 @@
             <div style="margin: 0 0 20px 0; text-align: left; font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: flex-start; gap: 8px;">
                 <input type="checkbox" id="agree-terms" style="width: auto; margin-top: 2px; cursor: pointer;">
                 <label for="agree-terms">
-                    Li e aceito os <a href="termos.html" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">Termos de Uso</a> 
-                    e a <a href="privacidade.html" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">Política de Privacidade</a>.
+                    Li e aceito os <a href="#" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">Termos de Uso</a> 
+                    e a <a href="#" target="_blank" style="color: var(--primary); font-weight: bold; text-decoration: none;">Política de Privacidade</a>.
                 </label>
             </div>
 
@@ -226,9 +217,9 @@
             
             <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border);">
                 <div style="margin-bottom: 15px; display: flex; gap: 12px; font-size: 0.65rem; font-weight: 700;">
-                    <a href="termos.html" target="_blank" style="color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;">Termos</a>
+                    <a href="#" target="_blank" style="color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;">Termos</a>
                     <span style="color: var(--border);">|</span>
-                    <a href="privacidade.html" target="_blank" style="color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;">Privacidade</a>
+                    <a href="#" target="_blank" style="color: var(--text-muted); text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px;">Privacidade</a>
                 </div>
                 <button id="btn-logout" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size:0.7rem; font-weight:700; padding:0;">ENCERRAR SESSÃO</button>
             </div>
@@ -265,25 +256,18 @@
                         <div id="efficiency-tag" class="efficiency-badge">Calculando...</div>
                         <div id="health-check-msg" class="health-alert"></div>
                     </div>
-
                     <div class="dash-card">
                         <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Valor Total em Pipeline</span>
                         <div class="total-money" id="dash-total-money">R$ 0,00</div>
                         <p style="margin:0; font-size:0.8rem; color:var(--text-muted);">Soma de todos os projetos ativos.</p>
                     </div>
-                    
                     <div class="dash-card">
                         <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Distribuição Financeira</span>
-                        <div style="height:200px; position:relative;">
-                            <canvas id="financeChart"></canvas>
-                        </div>
+                        <div style="height:200px; position:relative;"><canvas id="financeChart"></canvas></div>
                     </div>
-
                     <div class="dash-card">
                         <span style="text-transform:uppercase; color:var(--text-muted); font-size:0.7rem; letter-spacing:1px; font-weight:bold;">Status dos Projetos</span>
-                        <div style="height:200px; position:relative; display:flex; justify-content:center;">
-                            <canvas id="statusChart"></canvas>
-                        </div>
+                        <div style="height:200px; position:relative; display:flex; justify-content:center;"><canvas id="statusChart"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -293,7 +277,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDocs, enableIndexedDbPersistence, or } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDnXmurBXWauvg7hlxShOaZ4JIrtdpB3bo",
@@ -309,8 +293,7 @@
         const db = getFirestore(app);
 
         enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') console.log("Persistência falhou: Múltiplas abas abertas.");
-            else if (err.code == 'unimplemented') console.log("O navegador não suporta persistência.");
+            if (err.code == 'failed-precondition') console.log("Múltiplas abas abertas.");
         });
 
         let myIdeas = [];
@@ -320,14 +303,11 @@
         let financeChart = null;
         let statusChart = null;
         let currentUserEmail = null;
-        let teamMembers = []; // Cache dos membros da equipe do usuário atual
+        let teamMembers = [];
 
         const getSwalColors = () => {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            return {
-                background: isDark ? '#1e293b' : '#ffffff',
-                color: isDark ? '#f1f5f9' : '#1e293b'
-            };
+            return { background: isDark ? '#1e293b' : '#ffffff', color: isDark ? '#f1f5f9' : '#1e293b' };
         };
 
         const aiKeywords = {
@@ -373,12 +353,10 @@
 
         window.resetPassword = () => {
             const email = document.getElementById('login-email').value;
-            const theme = getSwalColors();
-            if(!email) return Swal.fire({ title: 'Atenção', text: "Por favor, digite seu e-mail no campo acima.", icon: 'warning', ...theme });
-            
+            if(!email) return Swal.fire({ title: 'Atenção', text: "Digite seu e-mail.", icon: 'warning', ...getSwalColors() });
             sendPasswordResetEmail(auth, email)
-                .then(() => Swal.fire({ title: 'Sucesso', text: "E-mail de redefinição de senha enviado!", icon: 'success', ...theme }))
-                .catch(e => Swal.fire({ title: 'Erro', text: e.message, icon: 'error', ...theme }));
+                .then(() => Swal.fire({ title: 'Sucesso', text: "E-mail enviado!", icon: 'success', ...getSwalColors() }))
+                .catch(e => Swal.fire({ title: 'Erro', text: e.message, icon: 'error', ...getSwalColors() }));
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -392,13 +370,12 @@
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
                 if(user && !user.emailVerified) { 
-                    Swal.fire({ title: 'Verificação Necessária', text: "Por favor, confirme seu e-mail para acessar!", icon: 'info', ...getSwalColors() });
+                    Swal.fire({ title: 'Verificação Necessária', text: "Confirme seu e-mail!", icon: 'info', ...getSwalColors() });
                     signOut(auth); 
                 }
             }
         });
 
-        // Gestão de Equipe (Ecossistema)
         async function fetchTeam(uid) {
             onSnapshot(doc(db, "teams", uid), (docSnap) => {
                 if (docSnap.exists()) {
@@ -412,18 +389,31 @@
 
         window.openTeamModal = () => { document.getElementById('team-modal').style.display = 'flex'; };
         
+        // CORREÇÃO: Ao adicionar membro, atualiza retroativamente os colaboradores em todos os projetos do dono
         window.addTeamMember = async () => {
-            const email = document.getElementById('new-member-email').value;
+            const email = document.getElementById('new-member-email').value.trim();
             if(!email) return;
-            const newMembers = [...teamMembers, email];
+            const newMembers = [...new Set([...teamMembers, email])];
             await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+            
+            // Atualiza projetos existentes para o novo membro ver
+            const q = query(collection(db, "ideas"), where("uid", "==", auth.currentUser.uid));
+            const snapshots = await getDocs(q);
+            const batch = snapshots.docs.map(d => updateDoc(d.ref, { collaborators: newMembers }));
+            await Promise.all(batch);
+
             document.getElementById('new-member-email').value = '';
-            showToast("Membro convidado!");
+            showToast("Membro sincronizado!");
         };
 
         window.removeTeamMember = async (email) => {
             const newMembers = teamMembers.filter(m => m !== email);
             await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+            // Remove acesso retroativo
+            const q = query(collection(db, "ideas"), where("uid", "==", auth.currentUser.uid));
+            const snapshots = await getDocs(q);
+            const batch = snapshots.docs.map(d => updateDoc(d.ref, { collaborators: newMembers }));
+            await Promise.all(batch);
         };
 
         function renderTeamList() {
@@ -433,40 +423,24 @@
                     <button onclick="window.removeTeamMember('${email}')" style="border:none; background:none; color:var(--danger); cursor:pointer;">✕</button>
                 </div>
             `).join('');
-            document.getElementById('team-list').innerHTML = html || '<span style="color:var(--text-muted); font-size:0.7rem;">Nenhum membro adicionado.</span>';
+            document.getElementById('team-list').innerHTML = html || '<span style="color:var(--text-muted); font-size:0.7rem;">Vazio.</span>';
         }
 
-        // Sincronização de Dados (Meus + Compartilhados)
+        // CORREÇÃO: Query Unificada para "Meus" OR "Compartilhados"
         function syncData(uid, email) {
-            // Meus Insights
-            const qMy = query(collection(db, "ideas"), where("uid", "==", uid));
-            onSnapshot(qMy, (snapshot) => {
-                myIdeas = [];
-                snapshot.forEach(doc => myIdeas.push({id: doc.id, ...doc.data(), isShared: false}));
-                combineAndRender();
+            const q = query(collection(db, "ideas"), or(where("uid", "==", uid), where("collaborators", "array-contains", email)));
+            onSnapshot(q, (snapshot) => {
+                const all = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    all.push({id: doc.id, ...data, isShared: data.uid !== uid});
+                });
+                window.renderedIdeas = all;
+                updateTagCloud(all);
+                updateStats(all);
+                renderAll(all);
+                updateDashboard(all);
             });
-
-            // Insights Compartilhados Comigo
-            const qShared = query(collection(db, "ideas"), where("collaborators", "array-contains", email));
-            onSnapshot(qShared, (snapshot) => {
-                sharedIdeas = [];
-                snapshot.forEach(doc => sharedIdeas.push({id: doc.id, ...doc.data(), isShared: true}));
-                combineAndRender();
-            });
-        }
-
-        function combineAndRender() {
-            // Combina e remove duplicatas (caso haja sobreposição estranha, embora as queries sejam distintas)
-            const all = [...myIdeas, ...sharedIdeas];
-            // Filtro de unicidade por ID
-            const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
-            
-            // Renderização
-            window.renderedIdeas = unique; // Salva globalmente para acesso fácil
-            updateTagCloud(unique);
-            updateStats(unique);
-            renderAll(unique);
-            updateDashboard(unique);
         }
 
         function switchTab(tab) {
@@ -524,7 +498,6 @@
             let filtered = ideas.filter(i => {
                 const matchSearch = i.title.toLowerCase().includes(term) || (i.tag && i.tag.toLowerCase().includes(term));
                 const matchTag = !activeTagFilter || i.tag === activeTagFilter;
-                
                 let matchDeadline = true;
                 if(activeDeadlineFilter !== 'all' && i.deadline) {
                     const dlDate = new Date(i.deadline).getTime();
@@ -532,10 +505,7 @@
                     if(activeDeadlineFilter === 1) matchDeadline = diffDays <= 1 && diffDays >= -1;
                     else if(activeDeadlineFilter === 7) matchDeadline = diffDays <= 7 && diffDays >= -1;
                     else if(activeDeadlineFilter === 30) matchDeadline = diffDays <= 30 && diffDays >= -1;
-                } else if (activeDeadlineFilter !== 'all' && !i.deadline) {
-                    matchDeadline = false;
-                }
-
+                } else if (activeDeadlineFilter !== 'all' && !i.deadline) matchDeadline = false;
                 return matchSearch && matchTag && matchDeadline;
             }).sort((a,b) => (b.pinned - a.pinned) || (b.updatedAt - a.updatedAt));
             
@@ -548,35 +518,20 @@
 
         function createCardHTML(i) {
             const colors = { alta: '#ef4444', media: '#f59e0b', baixa: '#10b981' };
-            
-            let dlStyle = "";
-            let pulseClass = "";
-            
+            let dlStyle = ""; let pulseClass = "";
             if(i.deadline) {
                 const diff = (new Date(i.deadline).getTime() - new Date().getTime()) / (1000*60*60*24);
                 if(diff < 1) dlStyle = "color: var(--danger); font-weight: 800; border: 1px solid var(--danger);";
                 else if(diff < 7) dlStyle = "color: var(--warning); font-weight: 800; border: 1px solid var(--warning);";
-
-                if(diff < 0 && i.prio === 'alta') {
-                    pulseClass = "critical-overdue";
-                }
+                if(diff < 0 && i.prio === 'alta') pulseClass = "critical-overdue";
             }
-
             const deadlineInfo = i.deadline ? `<span style="font-size:0.6rem; background:rgba(0,0,0,0.05); padding:2px 5px; border-radius:4px; margin-top:5px; display:inline-block; ${dlStyle}">📅 ${new Date(i.deadline).toLocaleDateString('pt-BR')}</span>` : '';
             const valueDisplay = i.value && i.value > 0 ? `<span class="value-badge">R$ ${parseFloat(i.value).toLocaleString('pt-BR')}</span>` : '';
-            
             const tasksTotal = i.checklist?.length || 0;
             const tasksDone = i.checklist?.filter(t => t.done).length || 0;
             const progressDisplay = tasksTotal > 0 ? `<div style="font-size:0.6rem; color:var(--primary); font-weight:800; margin-top:4px;">✅ ${tasksDone}/${tasksTotal} TAREFAS</div>` : '';
-            
             const progressPercent = tasksTotal > 0 ? (tasksDone / tasksTotal) * 100 : 0;
-            const progressBarHTML = tasksTotal > 0 ? `
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: ${progressPercent}%"></div>
-                </div>
-            ` : '';
-
-            const pinOpacity = i.pinned ? "1" : "0.3";
+            const progressBarHTML = tasksTotal > 0 ? `<div class="progress-container"><div class="progress-bar" style="width: ${progressPercent}%"></div></div>` : '';
             const sharedBadge = i.isShared ? `<span class="shared-badge">COMPARTILHADO</span>` : '';
 
             return `
@@ -587,27 +542,21 @@
                         <div style="flex:1">
                             <div><span style="font-size:0.6rem; color:var(--text-muted)">#${i.tag || 'Geral'} ${i.pinned ? '📌' : ''}</span>${valueDisplay}</div>
                             <strong style="display:block; margin-top:2px; font-size:1rem;">${i.title}</strong>
-                            ${deadlineInfo} ${progressDisplay}
-                            ${progressBarHTML}
+                            ${deadlineInfo} ${progressDisplay} ${progressBarHTML}
                         </div>
-                        <div onclick="event.stopPropagation()" style="display:flex; gap:8px; opacity:1;">
-                            <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; font-size:1rem; opacity:${pinOpacity}; filter:${i.pinned ? 'none' : 'grayscale(1)'}; transition: 0.2s;">📌</button>
-                            <button onclick="window.editIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem; opacity:0.6;">✏️</button>
-                            <button onclick="window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer; font-size:1rem; opacity:0.6;">🗑️</button>
+                        <div onclick="event.stopPropagation()" style="display:flex; gap:8px;">
+                            <button onclick="window.pinIdea('${i.id}', ${i.pinned})" style="background:none; border:none; cursor:pointer; opacity:${i.pinned ? '1' : '0.3'};">📌</button>
+                            <button onclick="window.editIdea('${i.id}')" style="background:none; border:none; cursor:pointer; opacity:0.6;">✏️</button>
+                            <button onclick="window.deleteIdea('${i.id}')" style="background:none; border:none; cursor:pointer; opacity:0.6;">🗑️</button>
                         </div>
                     </div>
                 </div>
             `;
         }
 
-        // Função para logar histórico
         const logHistory = async (ideaId, msg) => {
             const i = window.renderedIdeas.find(x => x.id === ideaId);
-            const historyEntry = {
-                timestamp: Date.now(),
-                user: currentUserEmail,
-                text: msg
-            };
+            const historyEntry = { timestamp: Date.now(), user: currentUserEmail, text: msg };
             const newHistory = [historyEntry, ...(i.history || [])];
             await updateDoc(doc(db, "ideas", ideaId), { history: newHistory });
         };
@@ -623,8 +572,7 @@
                 column.addEventListener('dragover', e => { e.preventDefault(); column.classList.add('drag-over'); });
                 column.addEventListener('dragleave', () => column.classList.remove('drag-over'));
                 column.addEventListener('drop', async (e) => {
-                    e.preventDefault();
-                    column.classList.remove('drag-over');
+                    e.preventDefault(); column.classList.remove('drag-over');
                     const card = document.querySelector('.dragging');
                     if(!card) return;
                     const id = card.dataset.id;
@@ -672,21 +620,13 @@
             if(id) {
                 const oldIdea = window.renderedIdeas.find(x => x.id === id);
                 await updateDoc(doc(db, "ideas", id), data);
-                if(oldIdea.status !== data.status) logHistory(id, `Alterou status para "${data.status.toUpperCase()}" via edição`);
-                else logHistory(id, `Editou detalhes do insight`);
+                logHistory(id, oldIdea.status !== data.status ? `Alterou status para "${data.status.toUpperCase()}"` : `Editou detalhes`);
             } else {
-                // Ao criar, adicionamos os colaboradores do time atual
                 await addDoc(collection(db, "ideas"), { 
-                    ...data, 
-                    uid: auth.currentUser.uid,
-                    pinned: false, 
-                    checklist: [], 
-                    history: [],
-                    collaborators: teamMembers, // Compartilha automaticamente
-                    createdAt: Date.now() 
+                    ...data, uid: auth.currentUser.uid, pinned: false, checklist: [], history: [],
+                    collaborators: teamMembers, createdAt: Date.now() 
                 });
             }
-
             ['idea-title','idea-desc','idea-val','idea-tag','idea-deadline','idea-link'].forEach(f => document.getElementById(f).value = '');
             document.getElementById('edit-id').value = "";
             document.getElementById('btn-save').innerText = "Lançar no Ecossistema";
@@ -694,54 +634,27 @@
         };
 
         window.deleteIdea = (id) => {
-            const theme = getSwalColors();
-            Swal.fire({
-                title: 'Tem certeza?',
-                text: "Você não poderá reverter esta ação!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sim, remover!',
-                cancelButtonText: 'Cancelar',
-                background: theme.background,
-                color: theme.color
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    deleteDoc(doc(db, "ideas", id));
-                    Swal.fire({ title: 'Removido!', text: 'O insight foi deletado.', icon: 'success', background: theme.background, color: theme.color });
-                }
-            })
+            Swal.fire({ title: 'Tem certeza?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Sim, remover!', ...getSwalColors() }).then((result) => {
+                if (result.isConfirmed) deleteDoc(doc(db, "ideas", id));
+            });
         };
 
         window.pinIdea = (id, cur) => updateDoc(doc(db, "ideas", id), { pinned: !cur });
-        
         window.setTagFilter = (tag) => { activeTagFilter = tag; updateTagCloud(window.renderedIdeas); renderAll(window.renderedIdeas); };
+        
         function updateTagCloud(ideas) {
-            if(!ideas) return;
             const tags = [...new Set(ideas.map(i => i.tag).filter(t => t))];
             document.getElementById('tag-filters').innerHTML = `<span class="tag-pill ${!activeTagFilter ? 'active' : ''}" onclick="window.setTagFilter(null)">Todas</span>` + tags.map(t => `<span class="tag-pill ${activeTagFilter === t ? 'active' : ''}" onclick="window.setTagFilter('${t}')">${t}</span>`).join('');
         }
         function showToast(m) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 2500); }
         
-        // Modal de Foco expandida com Histórico e Atribuição
         window.openFocus = id => {
             const i = window.renderedIdeas.find(x => x.id === id);
             if(!i) return;
-
-            // Gera options do select de assign com a lista da equipe + user atual
-            const allPossibleAssignees = [i.uid, ...(i.collaborators || [])]; 
-            // Como temos apenas e-mails no array collaborators, e UID no owner, vamos simplificar usando o currentUserEmail como base de "Eu"
-            // Para ser robusto, ideal seria ter mapa UID -> Email, mas usaremos emails diretos onde possivel.
             const uniqueEmails = [...new Set([currentUserEmail, ...(teamMembers || [])])];
-            
-            const assigneeOptions = (currentAssignee) => `
-                <option value="">Não atribuído</option>
-                ${uniqueEmails.map(e => `<option value="${e}" ${currentAssignee === e ? 'selected' : ''}>${e}</option>`).join('')}
-            `;
+            const assigneeOptions = (current) => `<option value="">Não atribuído</option>${uniqueEmails.map(e => `<option value="${e}" ${current === e ? 'selected' : ''}>${e}</option>`).join('')}`;
 
             document.getElementById('focus-content').innerHTML = `
-                <input type="hidden" id="current-focus-id" value="${i.id}">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                      <p style="color:var(--primary); font-size:0.6rem; font-weight:900; margin:0;">DOCUMENTO ESTRATÉGICO</p>
                      <div style="display:flex; gap:10px; align-items:center;">
@@ -751,33 +664,23 @@
                 </div>
                 <h2 style="margin:0 0 15px 0;">${i.title}</h2>
                 <div style="background:rgba(0,0,0,0.03); padding:20px; border-radius:15px; white-space:pre-wrap; margin-bottom:20px;">${i.desc || 'Sem notas.'}</div>
-                
                 <h3 style="font-size:0.9rem; color:var(--text-muted);">Checklist & Atribuições</h3>
                 <div id="check-items-list">
                     ${(i.checklist || []).map((t, idx) => `
                         <div class="check-item">
                             <input type="checkbox" ${t.done ? 'checked' : ''} onclick="window.toggleTask('${i.id}', ${idx})">
                             <span class="check-text ${t.done ? 'check-done' : ''}">${t.text}</span>
-                            <select onchange="window.assignTask('${i.id}', ${idx}, this.value)" class="assignee-select">
-                                ${assigneeOptions(t.assignee)}
-                            </select>
+                            <select onchange="window.assignTask('${i.id}', ${idx}, this.value)" class="assignee-select">${assigneeOptions(t.assignee)}</select>
                             <button class="btn-remove-task" onclick="window.removeTask('${i.id}', ${idx})">✕</button>
                         </div>
                     `).join('')}
                 </div>
                 <div style="display:flex; gap:5px; margin-top:10px; margin-bottom:30px;">
-                    <input type="text" id="new-task" placeholder="Nova tarefa..." style="flex:1;">
-                    <button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto;">+</button>
+                    <input type="text" id="new-task" placeholder="Nova tarefa..." style="flex:1;"><button class="btn-gpj" onclick="window.addTask('${i.id}')" style="width:auto;">+</button>
                 </div>
-
-                <h3 style="font-size:0.9rem; color:var(--text-muted); border-top:1px solid var(--border); padding-top:15px;">Histórico de Atividades</h3>
+                <h3 style="font-size:0.9rem; color:var(--text-muted); border-top:1px solid var(--border); padding-top:15px;">Histórico</h3>
                 <div style="max-height:150px; overflow-y:auto;">
-                    ${(i.history || []).map(h => `
-                        <div class="history-entry">
-                            <div class="history-date">${new Date(h.timestamp).toLocaleString('pt-BR')} - ${h.user}</div>
-                            <div class="history-desc">${h.text}</div>
-                        </div>
-                    `).join('')}
+                    ${(i.history || []).map(h => `<div class="history-entry"><div class="history-date">${new Date(h.timestamp).toLocaleString('pt-BR')} - ${h.user}</div><div class="history-desc">${h.text}</div></div>`).join('')}
                 </div>
             `;
             document.getElementById('focus-modal').style.display = 'flex';
@@ -785,96 +688,49 @@
 
         window.exportToPDF = (id) => {
             const i = window.renderedIdeas.find(x => x.id === id);
-            if(!i) return;
-            const { jsPDF } = window.jspdf;
-            const docPdf = new jsPDF();
-            
-            docPdf.setFont("helvetica", "bold");
-            docPdf.setFontSize(18);
-            docPdf.text("IdeaFlow Strategic Export", 20, 20);
-            
-            docPdf.setFontSize(12);
-            docPdf.text(`Título: ${i.title}`, 20, 35);
-            docPdf.text(`Status: ${i.status.toUpperCase()}`, 20, 42);
-            
-            docPdf.setFont("helvetica", "normal");
-            docPdf.text("Descrição:", 20, 60);
+            const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
+            docPdf.setFont("helvetica", "bold"); docPdf.text("IdeaFlow Strategic Export", 20, 20);
+            docPdf.setFontSize(10); docPdf.text(`Título: ${i.title}`, 20, 35);
             const splitDesc = docPdf.splitTextToSize(i.desc || "Sem descrição.", 170);
-            docPdf.text(splitDesc, 20, 67);
-            
-            let y = 67 + (splitDesc.length * 7) + 10;
-            if(i.checklist && i.checklist.length > 0) {
-                docPdf.setFont("helvetica", "bold");
-                docPdf.text("Checklist de Execução:", 20, y);
-                y += 10;
-                docPdf.setFont("helvetica", "normal");
-                i.checklist.forEach(t => {
-                    const status = t.done ? "[X]" : "[ ]";
-                    const assignee = t.assignee ? `(Resp: ${t.assignee})` : '';
-                    docPdf.text(`${status} ${t.text} ${assignee}`, 25, y);
-                    y += 7;
-                });
-            }
-            
-            docPdf.save(`Insight_${i.title.replace(/\s+/g, '_')}.pdf`);
-            showToast("PDF Gerado!");
+            docPdf.text(splitDesc, 20, 45);
+            docPdf.save(`Insight_${i.title}.pdf`);
         };
 
         window.addTask = async (id) => {
-            const text = document.getElementById('new-task').value;
-            if(!text) return;
+            const text = document.getElementById('new-task').value; if(!text) return;
             const i = window.renderedIdeas.find(x => x.id === id);
-            // Default assignee: quem criou a tarefa
             const newList = [...(i.checklist || []), { text, done: false, assignee: currentUserEmail }];
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            logHistory(id, `Adicionou tarefa: "${text}"`);
+            logHistory(id, `Adicionou: "${text}"`);
+            window.openFocus(id);
         };
 
         window.toggleTask = async (id, idx) => {
             const i = window.renderedIdeas.find(x => x.id === id);
-            const newList = [...i.checklist];
-            newList[idx].done = !newList[idx].done;
+            const newList = [...i.checklist]; newList[idx].done = !newList[idx].done;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
+            window.openFocus(id);
         };
 
         window.assignTask = async (id, idx, email) => {
             const i = window.renderedIdeas.find(x => x.id === id);
-            const newList = [...i.checklist];
-            newList[idx].assignee = email;
+            const newList = [...i.checklist]; newList[idx].assignee = email;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            // Reabrir modal para atualizar UI não é ideal mas garante consistência rápida
-            // O listener já vai atualizar, mas a modal precisa de refresh manual ou re-render.
-            // Aqui, deixamos o listener atualizar o array, e se o user fechar e abrir vê o novo estado.
         };
 
         window.removeTask = async (id, idx) => {
             const i = window.renderedIdeas.find(x => x.id === id);
-            const taskTxt = i.checklist[idx].text;
             const newList = i.checklist.filter((_, index) => index !== idx);
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            logHistory(id, `Removeu tarefa: "${taskTxt}"`);
+            window.openFocus(id);
         };
 
         window.closeFocus = () => { document.getElementById('focus-modal').style.display = 'none'; };
-
-        document.getElementById('btn-login').onclick = () => {
-            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value)
-                .catch(e => Swal.fire({ title: 'Acesso Negado', text: "Erro no login. Verifique suas credenciais.", icon: 'error', ...getSwalColors() }));
-        };
-
+        document.getElementById('btn-login').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).catch(e => Swal.fire({ title: 'Erro', text: 'Falha no login', icon: 'error', ...getSwalColors() }));
         document.getElementById('btn-signup').onclick = () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            const theme = getSwalColors();
-            if(!document.getElementById('agree-terms').checked) return Swal.fire({ title: 'Atenção', text: "Você precisa aceitar os termos de uso.", icon: 'warning', ...theme });
-            
-            createUserWithEmailAndPassword(auth, email, pass).then((u) => {
-                sendEmailVerification(u.user);
-                Swal.fire({ title: 'Conta Criada!', text: "Verifique seu e-mail para ativar a conta.", icon: 'success', ...theme });
-                signOut(auth);
-            }).catch(e => Swal.fire({ title: 'Erro no Cadastro', text: e.message, icon: 'error', ...theme }));
+            if(!document.getElementById('agree-terms').checked) return;
+            createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-pass').value).then(u => { sendEmailVerification(u.user); signOut(auth); });
         };
-
         document.getElementById('btn-logout').onclick = () => signOut(auth);
         window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); };
         document.getElementById('search-input').onkeyup = () => renderAll(window.renderedIdeas);
