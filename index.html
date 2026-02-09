@@ -412,14 +412,56 @@
 
         window.openTeamModal = () => { document.getElementById('team-modal').style.display = 'flex'; };
         
+        // --- FUNÇÃO CORRIGIDA ABAIXO ---
         window.addTeamMember = async () => {
-            const email = document.getElementById('new-member-email').value;
-            if(!email) return;
-            const newMembers = [...teamMembers, email];
-            await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
-            document.getElementById('new-member-email').value = '';
-            showToast("Membro convidado!");
+            try {
+                const emailInput = document.getElementById('new-member-email');
+                const email = emailInput.value.trim();
+
+                if (!email) return showToast("Por favor, digite um e-mail válido.");
+                if (!auth.currentUser) return showToast("Erro: Usuário não autenticado.");
+
+                // Garante que teamMembers é um array
+                const currentList = Array.isArray(teamMembers) ? teamMembers : [];
+
+                if (currentList.includes(email)) {
+                    showToast("Este usuário já faz parte da equipe!");
+                    return;
+                }
+
+                // Feedback visual (loading)
+                const btn = document.querySelector('#team-modal button.btn-gpj');
+                const originalText = btn.innerText;
+                btn.innerText = "⏳";
+                btn.disabled = true;
+
+                const newMembers = [...currentList, email];
+                await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+                
+                emailInput.value = '';
+                showToast("Membro convidado com sucesso!");
+
+                // Restaura botão
+                btn.innerText = originalText;
+                btn.disabled = false;
+
+            } catch (error) {
+                console.error("Erro ao adicionar membro:", error);
+                Swal.fire({
+                    title: 'Erro',
+                    text: error.message,
+                    icon: 'error',
+                    ...getSwalColors()
+                });
+                
+                const btn = document.querySelector('#team-modal button.btn-gpj');
+                if(btn) {
+                    btn.innerText = "+";
+                    btn.disabled = false;
+                }
+            }
         };
+        // --- FIM DA CORREÇÃO ---
 
         window.removeTeamMember = async (email) => {
             const newMembers = teamMembers.filter(m => m !== email);
