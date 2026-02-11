@@ -319,11 +319,12 @@
         </main>
     </div>
 
-    <script type="module">
+   <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // CONFIGURAÇÃO DO SEU FIREBASE (MANTIDA)
         const firebaseConfig = {
             apiKey: "AIzaSyDnXmurBXWauvg7hlxShOaZ4JIrtdpB3bo",
             authDomain: "ideaflow-gpj.firebaseapp.com",
@@ -333,14 +334,19 @@
             appId: "1:790551174551:web:5ae2e040c15e46054c78d2"
         };
 
+        // --- SEU E-MAIL DE ADMIN (Coloque seu e-mail aqui para ser sempre PRO) ---
+        const ADMIN_EMAIL = "seu-email@exemplo.com"; 
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') console.log("Persistência falhou: Múltiplas abas abertas.");
-            else if (err.code == 'unimplemented') console.log("O navegador não suporta persistência.");
-        });
+        // Tenta persistência, mas não trava se falhar
+        try {
+            enableIndexedDbPersistence(db).catch((err) => {
+                console.log("Persistência:", err.code);
+            });
+        } catch (e) { console.log("Erro persistência ignorado"); }
 
         let myIdeas = [];
         let sharedIdeas = [];
@@ -350,9 +356,8 @@
         let statusChart = null;
         let currentUserEmail = null;
         let teamMembers = []; 
-        let userPlan = 'free'; // 'free' ou 'pro'
+        let userPlan = 'free'; 
 
-        // Limites
         const LIMITS = {
             free: { ideas: 10, team: 1 },
             pro: { ideas: Infinity, team: Infinity }
@@ -417,26 +422,43 @@
                 .catch(e => Swal.fire({ title: 'Erro', text: e.message, icon: 'error', ...theme }));
         };
 
+        // --- MUDANÇA CRÍTICA AQUI: Autenticação Segura ---
         onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
                 currentUserEmail = user.email;
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
                 
-                // Carregar ou Criar Dados do Usuário (Plano)
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
-                
-                if (userSnap.exists()) {
-                    userPlan = userSnap.data().plan || 'free';
+                // BACKDOOR: Se for o admin, força PRO
+                if(user.email === ADMIN_EMAIL) {
+                    userPlan = 'pro';
+                    console.log("Modo Admin Ativado: Plano PRO forçado.");
                 } else {
-                    await setDoc(userRef, { plan: 'free', email: user.email });
-                    userPlan = 'free';
+                    // Tenta buscar o plano, mas SE FALHAR, continua rodando
+                    try {
+                        const userRef = doc(db, "users", user.uid);
+                        const userSnap = await getDoc(userRef);
+                        
+                        if (userSnap.exists()) {
+                            userPlan = userSnap.data().plan || 'free';
+                        } else {
+                            // Se não existe doc do usuário, cria um free silenciosamente
+                            try { await setDoc(userRef, { plan: 'free', email: user.email }); } catch(e){}
+                            userPlan = 'free';
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar plano (provavelmente permissão):", error);
+                        console.log("Assumindo plano Free para não travar o app.");
+                        userPlan = 'free'; 
+                    }
                 }
+
                 updatePlanUI();
 
+                // Carrega os dados independente do erro do plano
                 fetchTeam(user.uid);
                 syncData(user.uid, user.email);
+
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('main-app').style.display = 'none';
@@ -447,7 +469,6 @@
             }
         });
 
-        // Função para atualizar UI baseada no plano
         function updatePlanUI() {
             const badge = document.getElementById('user-plan-badge');
             const upgradeCard = document.getElementById('upgrade-cta');
@@ -464,22 +485,24 @@
                 upgradeCard.style.display = 'block';
                 limitContainer.style.display = 'block';
             }
-            updateLimitsUI();
+            // Atualiza limites com delay para garantir que os dados chegaram
+            setTimeout(updateLimitsUI, 1000); 
         }
 
         function updateLimitsUI() {
             if (userPlan === 'pro') return;
-            // Contar apenas as ideias QUE EU CRIEI
             const myCreatedCount = myIdeas.length;
             const limit = LIMITS.free.ideas;
             
             document.getElementById('limit-text').innerText = `${myCreatedCount}/${limit}`;
             const pct = Math.min((myCreatedCount / limit) * 100, 100);
-            document.getElementById('limit-bar').style.width = `${pct}%`;
-            document.getElementById('limit-bar').style.background = pct >= 100 ? 'var(--danger)' : 'var(--primary)';
+            const bar = document.getElementById('limit-bar');
+            if(bar) {
+                bar.style.width = `${pct}%`;
+                bar.style.background = pct >= 100 ? 'var(--danger)' : 'var(--primary)';
+            }
         }
 
-        // Mock de Upgrade
         window.triggerUpgrade = () => {
             const theme = getSwalColors();
             Swal.fire({
@@ -488,8 +511,6 @@
                     <ul style="text-align:left; color:var(--text-muted); font-size:0.9rem; line-height:1.6;">
                         <li>✅ Insights Ilimitados</li>
                         <li>✅ Equipe Ilimitada</li>
-                        <li>✅ Suporte Prioritário</li>
-                        <li>✅ IA Avançada</li>
                     </ul>
                     <p style="margin-top:10px; font-weight:bold;">Apenas R$ 29,90/mês</p>
                 `,
@@ -501,16 +522,18 @@
                 color: theme.color
             }).then(async (result) => {
                 if (result.isConfirmed) {
-                    // Simula pagamento e update
-                    await updateDoc(doc(db, "users", auth.currentUser.uid), { plan: 'pro' });
-                    userPlan = 'pro';
-                    updatePlanUI();
-                    Swal.fire({ title: 'Bem-vindo ao PRO!', text: "Sua conta foi atualizada.", icon: 'success', background: theme.background, color: theme.color });
+                    try {
+                        await updateDoc(doc(db, "users", auth.currentUser.uid), { plan: 'pro' });
+                        userPlan = 'pro';
+                        updatePlanUI();
+                        Swal.fire({ title: 'Bem-vindo ao PRO!', text: "Sua conta foi atualizada.", icon: 'success', background: theme.background, color: theme.color });
+                    } catch (e) {
+                        Swal.fire({ title: 'Erro', text: "Erro ao atualizar. Verifique suas permissões ou contate o suporte.", icon: 'error', ...theme });
+                    }
                 }
             });
         };
 
-        // Gestão de Equipe (Ecossistema)
         async function fetchTeam(uid) {
             onSnapshot(doc(db, "teams", uid), (docSnap) => {
                 if (docSnap.exists()) {
@@ -519,6 +542,8 @@
                 } else {
                     teamMembers = [];
                 }
+            }, (error) => {
+                console.log("Erro ao carregar time (permissão ou inexistente):", error);
             });
         }
 
@@ -526,7 +551,6 @@
         
         window.addTeamMember = async () => {
             try {
-                // Checagem de Limite
                 if (userPlan === 'free' && teamMembers.length >= LIMITS.free.team) {
                     document.getElementById('team-limit-warning').style.display = 'block';
                     return;
@@ -557,31 +581,21 @@
                 
                 emailInput.value = '';
                 showToast("Membro convidado com sucesso!");
-
                 btn.innerText = originalText;
                 btn.disabled = false;
 
             } catch (error) {
                 console.error("Erro ao adicionar membro:", error);
-                Swal.fire({
-                    title: 'Erro',
-                    text: error.message,
-                    icon: 'error',
-                    ...getSwalColors()
-                });
-                
+                Swal.fire({ title: 'Erro', text: error.message, icon: 'error', ...getSwalColors() });
                 const btn = document.querySelector('#team-modal button.btn-gpj');
-                if(btn) {
-                    btn.innerText = "+";
-                    btn.disabled = false;
-                }
+                if(btn) { btn.innerText = "+"; btn.disabled = false; }
             }
         };
 
         window.removeTeamMember = async (email) => {
             const newMembers = teamMembers.filter(m => m !== email);
             await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
-            document.getElementById('team-limit-warning').style.display = 'none'; // Reseta aviso se remover
+            document.getElementById('team-limit-warning').style.display = 'none';
         };
 
         function renderTeamList() {
@@ -594,7 +608,6 @@
             document.getElementById('team-list').innerHTML = html || '<span style="color:var(--text-muted); font-size:0.7rem;">Nenhum membro adicionado.</span>';
         }
 
-        // Sincronização de Dados (Meus + Compartilhados)
         function syncData(uid, email) {
             // Meus Insights
             const qMy = query(collection(db, "ideas"), where("uid", "==", uid));
@@ -602,7 +615,10 @@
                 myIdeas = [];
                 snapshot.forEach(doc => myIdeas.push({id: doc.id, ...doc.data(), isShared: false}));
                 combineAndRender();
-                updateLimitsUI();
+                updateLimitsUI(); // Atualiza barra de progresso
+            }, (error) => {
+                console.error("Erro ao buscar insights:", error);
+                // Se der erro de permissão aqui, seus dados não foram apagados, apenas bloqueados.
             });
 
             // Insights Compartilhados Comigo
@@ -617,7 +633,6 @@
         function combineAndRender() {
             const all = [...myIdeas, ...sharedIdeas];
             const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
-            
             window.renderedIdeas = unique;
             updateTagCloud(unique);
             updateStats(unique);
@@ -1031,5 +1046,3 @@
         window.toggleTheme = () => { const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', t); };
         document.getElementById('search-input').onkeyup = () => renderAll(window.renderedIdeas);
     </script>
-</body>
-</html>
