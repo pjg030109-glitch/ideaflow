@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IdeaFlow Pro v4.0 | Team Edition</title>
+    <title>IdeaFlow Pro v4.5 | Team Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -15,10 +15,12 @@
             --warning: #f59e0b; --success: #10b981; --bg: #f1f5f9; 
             --sidebar-bg: #ffffff; --card-bg: #ffffff; --text: #1e293b; 
             --text-muted: #64748b; --border: #e2e8f0;
+            --gold: #d97706; --gold-light: #fcd34d;
         }
         [data-theme="dark"] {
             --bg: #0f172a; --sidebar-bg: #1e293b; --card-bg: #1e293b;
             --text: #f1f5f9; --text-muted: #94a3b8; --border: #334155;
+            --gold: #fbbf24;
         }
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; min-height: 100vh; transition: 0.3s; overflow-x: hidden; }
@@ -77,7 +79,6 @@
         .tag-pill.active { background: var(--primary); color: white; }
         .value-badge { color: var(--success); font-weight: 800; font-size: 0.8rem; margin-left: 8px; }
 
-        /* Estilos da Barra de Progresso */
         .progress-container { width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 8px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary); transition: width 0.4s ease; width: 0%; }
 
@@ -88,7 +89,6 @@
         .btn-remove-task { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: 0.2s; padding: 5px; }
         .btn-remove-task:hover { opacity: 1; }
 
-        /* Novos estilos para Select de Atribuição e Histórico */
         .assignee-select { padding: 5px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.75rem; background: var(--card-bg); color: var(--text); max-width: 120px; }
         .history-entry { border-left: 2px solid var(--border); padding-left: 15px; margin-bottom: 15px; position: relative; }
         .history-entry::before { content: ''; position: absolute; left: -5px; top: 5px; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
@@ -99,10 +99,17 @@
         .btn-gpj { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; width: 100%; }
         .btn-gpj:hover { filter: brightness(1.1); transform: translateY(-1px); }
 
+        /* Estilos do Plano */
+        .plan-badge { font-size: 0.6rem; padding: 3px 8px; border-radius: 12px; text-transform: uppercase; font-weight: 900; margin-left: 5px; display: inline-block; vertical-align: middle; }
+        .plan-free { background: var(--text-muted); color: white; }
+        .plan-pro { background: var(--gold); color: white; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); }
+        
+        .upgrade-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; text-align: center; }
+        .upgrade-btn { background: white; color: var(--primary); border: none; padding: 8px 15px; border-radius: 20px; font-weight: 800; font-size: 0.7rem; cursor: pointer; margin-top: 10px; text-transform: uppercase; }
+        
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 11000; }
         .toast { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.2); font-weight: 600; }
 
-        /* Animação de Pulsar para Prioridade Alta + Vencido */
         @keyframes pulse-red {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -115,7 +122,6 @@
             border-width: 2px !important;
         }
 
-        /* Estilização Extra para SweetAlert2 em Dark Mode */
         div:where(.swal2-container) h2:where(.swal2-title), div:where(.swal2-container) div:where(.swal2-html-container) {
             font-family: 'Inter', sans-serif !important;
         }
@@ -134,6 +140,11 @@
                 <h3 style="margin:0;">Ecossistema & Equipe</h3>
                 <span onclick="document.getElementById('team-modal').style.display='none'" style="cursor:pointer; font-size:1.5rem;">×</span>
             </div>
+            
+            <div id="team-limit-warning" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); padding: 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; display: none;">
+                🔒 <strong>Limite do Plano Free:</strong> Você só pode convidar 1 membro. <a href="#" onclick="window.triggerUpgrade()" style="color: var(--danger); font-weight: bold;">Faça Upgrade.</a>
+            </div>
+
             <p style="font-size:0.8rem; color:var(--text-muted);">Adicione e-mails de membros. Eles poderão ver e editar os insights compartilhados.</p>
             <div style="display:flex; gap:10px; margin-bottom:15px;">
                 <input type="email" id="new-member-email" placeholder="email@colega.com">
@@ -171,9 +182,16 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <span style="font-weight:900; color:var(--primary); font-size:1.4rem; letter-spacing:-1px;">IdeaFlow</span>
+                    <span id="user-plan-badge" class="plan-badge plan-free">FREE</span>
                     <p style="margin:0; font-size:0.5rem; color:var(--text-muted); font-weight:700; letter-spacing:1px;">GPJ ENTERPRISES</p>
                 </div>
                 <button onclick="window.toggleTheme()" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">🌙</button>
+            </div>
+            
+            <div id="upgrade-cta" class="upgrade-card" style="display:none;">
+                <div style="font-weight:800; font-size:0.9rem;">Seja PRO 🚀</div>
+                <div style="font-size:0.7rem; opacity:0.9; margin: 5px 0;">Insights e equipe ilimitados.</div>
+                <button class="upgrade-btn" onclick="window.triggerUpgrade()">Fazer Upgrade</button>
             </div>
 
             <button onclick="window.openTeamModal()" style="background:rgba(99, 102, 241, 0.1); color:var(--primary); border:none; padding:10px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.8rem;">👥 Gerenciar Ecossistema</button>
@@ -218,6 +236,17 @@
                     <option value="andamento">Status: Em Curso</option>
                     <option value="concluida">Status: Concluída</option>
                 </select>
+                
+                <div id="limit-progress-container" style="display:none; margin-top:5px;">
+                     <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:var(--text-muted); margin-bottom:3px;">
+                        <span>Uso do Plano Grátis</span>
+                        <span id="limit-text">0/10</span>
+                     </div>
+                     <div style="width:100%; background:rgba(0,0,0,0.1); height:4px; border-radius:2px;">
+                        <div id="limit-bar" style="width:0%; background:var(--danger); height:100%; border-radius:2px; transition:0.3s;"></div>
+                     </div>
+                </div>
+
                 <button class="btn-gpj" id="btn-save">Lançar no Ecossistema</button>
             </div>
 
@@ -320,7 +349,14 @@
         let financeChart = null;
         let statusChart = null;
         let currentUserEmail = null;
-        let teamMembers = []; // Cache dos membros da equipe do usuário atual
+        let teamMembers = []; 
+        let userPlan = 'free'; // 'free' ou 'pro'
+
+        // Limites
+        const LIMITS = {
+            free: { ideas: 10, team: 1 },
+            pro: { ideas: Infinity, team: Infinity }
+        };
 
         const getSwalColors = () => {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -381,11 +417,24 @@
                 .catch(e => Swal.fire({ title: 'Erro', text: e.message, icon: 'error', ...theme }));
         };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (user && user.emailVerified) {
                 currentUserEmail = user.email;
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('main-app').style.display = 'flex';
+                
+                // Carregar ou Criar Dados do Usuário (Plano)
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    userPlan = userSnap.data().plan || 'free';
+                } else {
+                    await setDoc(userRef, { plan: 'free', email: user.email });
+                    userPlan = 'free';
+                }
+                updatePlanUI();
+
                 fetchTeam(user.uid);
                 syncData(user.uid, user.email);
             } else {
@@ -397,6 +446,69 @@
                 }
             }
         });
+
+        // Função para atualizar UI baseada no plano
+        function updatePlanUI() {
+            const badge = document.getElementById('user-plan-badge');
+            const upgradeCard = document.getElementById('upgrade-cta');
+            const limitContainer = document.getElementById('limit-progress-container');
+
+            if (userPlan === 'pro') {
+                badge.innerText = 'PRO';
+                badge.className = 'plan-badge plan-pro';
+                upgradeCard.style.display = 'none';
+                limitContainer.style.display = 'none';
+            } else {
+                badge.innerText = 'FREE';
+                badge.className = 'plan-badge plan-free';
+                upgradeCard.style.display = 'block';
+                limitContainer.style.display = 'block';
+            }
+            updateLimitsUI();
+        }
+
+        function updateLimitsUI() {
+            if (userPlan === 'pro') return;
+            // Contar apenas as ideias QUE EU CRIEI
+            const myCreatedCount = myIdeas.length;
+            const limit = LIMITS.free.ideas;
+            
+            document.getElementById('limit-text').innerText = `${myCreatedCount}/${limit}`;
+            const pct = Math.min((myCreatedCount / limit) * 100, 100);
+            document.getElementById('limit-bar').style.width = `${pct}%`;
+            document.getElementById('limit-bar').style.background = pct >= 100 ? 'var(--danger)' : 'var(--primary)';
+        }
+
+        // Mock de Upgrade
+        window.triggerUpgrade = () => {
+            const theme = getSwalColors();
+            Swal.fire({
+                title: 'Desbloquear IdeaFlow PRO',
+                html: `
+                    <ul style="text-align:left; color:var(--text-muted); font-size:0.9rem; line-height:1.6;">
+                        <li>✅ Insights Ilimitados</li>
+                        <li>✅ Equipe Ilimitada</li>
+                        <li>✅ Suporte Prioritário</li>
+                        <li>✅ IA Avançada</li>
+                    </ul>
+                    <p style="margin-top:10px; font-weight:bold;">Apenas R$ 29,90/mês</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Assinar Agora',
+                confirmButtonColor: '#d97706',
+                background: theme.background,
+                color: theme.color
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    // Simula pagamento e update
+                    await updateDoc(doc(db, "users", auth.currentUser.uid), { plan: 'pro' });
+                    userPlan = 'pro';
+                    updatePlanUI();
+                    Swal.fire({ title: 'Bem-vindo ao PRO!', text: "Sua conta foi atualizada.", icon: 'success', background: theme.background, color: theme.color });
+                }
+            });
+        };
 
         // Gestão de Equipe (Ecossistema)
         async function fetchTeam(uid) {
@@ -412,16 +524,22 @@
 
         window.openTeamModal = () => { document.getElementById('team-modal').style.display = 'flex'; };
         
-        // --- FUNÇÃO CORRIGIDA ABAIXO ---
         window.addTeamMember = async () => {
             try {
+                // Checagem de Limite
+                if (userPlan === 'free' && teamMembers.length >= LIMITS.free.team) {
+                    document.getElementById('team-limit-warning').style.display = 'block';
+                    return;
+                } else {
+                    document.getElementById('team-limit-warning').style.display = 'none';
+                }
+
                 const emailInput = document.getElementById('new-member-email');
                 const email = emailInput.value.trim();
 
                 if (!email) return showToast("Por favor, digite um e-mail válido.");
                 if (!auth.currentUser) return showToast("Erro: Usuário não autenticado.");
 
-                // Garante que teamMembers é um array
                 const currentList = Array.isArray(teamMembers) ? teamMembers : [];
 
                 if (currentList.includes(email)) {
@@ -429,7 +547,6 @@
                     return;
                 }
 
-                // Feedback visual (loading)
                 const btn = document.querySelector('#team-modal button.btn-gpj');
                 const originalText = btn.innerText;
                 btn.innerText = "⏳";
@@ -441,7 +558,6 @@
                 emailInput.value = '';
                 showToast("Membro convidado com sucesso!");
 
-                // Restaura botão
                 btn.innerText = originalText;
                 btn.disabled = false;
 
@@ -461,11 +577,11 @@
                 }
             }
         };
-        // --- FIM DA CORREÇÃO ---
 
         window.removeTeamMember = async (email) => {
             const newMembers = teamMembers.filter(m => m !== email);
             await setDoc(doc(db, "teams", auth.currentUser.uid), { members: newMembers }, { merge: true });
+            document.getElementById('team-limit-warning').style.display = 'none'; // Reseta aviso se remover
         };
 
         function renderTeamList() {
@@ -486,6 +602,7 @@
                 myIdeas = [];
                 snapshot.forEach(doc => myIdeas.push({id: doc.id, ...doc.data(), isShared: false}));
                 combineAndRender();
+                updateLimitsUI();
             });
 
             // Insights Compartilhados Comigo
@@ -498,13 +615,10 @@
         }
 
         function combineAndRender() {
-            // Combina e remove duplicatas (caso haja sobreposição estranha, embora as queries sejam distintas)
             const all = [...myIdeas, ...sharedIdeas];
-            // Filtro de unicidade por ID
             const unique = Array.from(new Map(all.map(item => [item.id, item])).values());
             
-            // Renderização
-            window.renderedIdeas = unique; // Salva globalmente para acesso fácil
+            window.renderedIdeas = unique;
             updateTagCloud(unique);
             updateStats(unique);
             renderAll(unique);
@@ -642,7 +756,6 @@
             `;
         }
 
-        // Função para logar histórico
         const logHistory = async (ideaId, msg) => {
             const i = window.renderedIdeas.find(x => x.id === ideaId);
             const historyEntry = {
@@ -698,6 +811,12 @@
 
         document.getElementById('btn-save').onclick = async () => {
             const id = document.getElementById('edit-id').value;
+
+            // Checagem de Limite para NOVA IDEIA
+            if (!id && userPlan === 'free' && myIdeas.length >= LIMITS.free.ideas) {
+                return window.triggerUpgrade();
+            }
+
             const data = {
                 title: document.getElementById('idea-title').value,
                 desc: document.getElementById('idea-desc').value,
@@ -717,14 +836,13 @@
                 if(oldIdea.status !== data.status) logHistory(id, `Alterou status para "${data.status.toUpperCase()}" via edição`);
                 else logHistory(id, `Editou detalhes do insight`);
             } else {
-                // Ao criar, adicionamos os colaboradores do time atual
                 await addDoc(collection(db, "ideas"), { 
                     ...data, 
                     uid: auth.currentUser.uid,
                     pinned: false, 
                     checklist: [], 
                     history: [],
-                    collaborators: teamMembers, // Compartilha automaticamente
+                    collaborators: teamMembers, 
                     createdAt: Date.now() 
                 });
             }
@@ -766,15 +884,11 @@
         }
         function showToast(m) { const t = document.createElement('div'); t.className = 'toast'; t.innerText = m; document.getElementById('toast-container').appendChild(t); setTimeout(() => t.remove(), 2500); }
         
-        // Modal de Foco expandida com Histórico e Atribuição
         window.openFocus = id => {
             const i = window.renderedIdeas.find(x => x.id === id);
             if(!i) return;
 
-            // Gera options do select de assign com a lista da equipe + user atual
             const allPossibleAssignees = [i.uid, ...(i.collaborators || [])]; 
-            // Como temos apenas e-mails no array collaborators, e UID no owner, vamos simplificar usando o currentUserEmail como base de "Eu"
-            // Para ser robusto, ideal seria ter mapa UID -> Email, mas usaremos emails diretos onde possivel.
             const uniqueEmails = [...new Set([currentUserEmail, ...(teamMembers || [])])];
             
             const assigneeOptions = (currentAssignee) => `
@@ -866,7 +980,6 @@
             const text = document.getElementById('new-task').value;
             if(!text) return;
             const i = window.renderedIdeas.find(x => x.id === id);
-            // Default assignee: quem criou a tarefa
             const newList = [...(i.checklist || []), { text, done: false, assignee: currentUserEmail }];
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
             logHistory(id, `Adicionou tarefa: "${text}"`);
@@ -884,9 +997,6 @@
             const newList = [...i.checklist];
             newList[idx].assignee = email;
             await updateDoc(doc(db, "ideas", id), { checklist: newList });
-            // Reabrir modal para atualizar UI não é ideal mas garante consistência rápida
-            // O listener já vai atualizar, mas a modal precisa de refresh manual ou re-render.
-            // Aqui, deixamos o listener atualizar o array, e se o user fechar e abrir vê o novo estado.
         };
 
         window.removeTask = async (id, idx) => {
